@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TeslaStream — Free IPTV Player for Tesla, EV & Web Browsers</title>
+  <meta name="description" content="Watch IPTV, live TV, sports and videos in your Tesla, EV or any web browser. Connect your IPTV provider and start streaming in seconds. 100% Free.">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{dark:'#0a0a0f',accent:'#ef4444'}}}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #0a0a0f; color: #fff; font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    body { overflow-x: hidden; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Tesla splash screen */
+    .splash-overlay { position: fixed; inset: 0; z-index: 9999; background: #0d0f10; display: flex; flex-direction: column; overflow: hidden; }
+    .splash-overlay.loaded { opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+    .splash-bg { position: absolute; inset: 0; overflow: hidden; }
+    .splash-bg img { height: 100%; width: 100%; object-fit: cover; object-position: center right; }
+    .splash-bg .gradient-left { position: absolute; inset-y: 0; left: 0; width: 50%; background: linear-gradient(to right, #0d0f10, #0d0f10cc, transparent); }
+    .splash-bg .gradient-bottom { position: absolute; inset: 0; background: linear-gradient(to top, #0d0f10, transparent 50%, #0d0f10cc); }
+    .splash-bg .overlay-tint { position: absolute; inset: 0; background: #0d0f1033; }
+    .splash-content { position: relative; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; height: 100%; padding: 24px; max-width: 1280px; margin: 0 auto; overflow-y: auto; }
+    .splash-progress { height: 1px; background: rgba(255,255,255,0.12); position: relative; }
+    .splash-progress-bar { height: 100%; background: #6366f1; width: 0%; transition: width 0.3s; }
+    .splash-progress-marker { position: absolute; top: 50%; transform: translateY(-50%); width: 8px; height: 8px; background: #6366f1; border-radius: 50%; left: 0%; transition: left 0.3s; }
+
+    /* Main app */
+    .app-main { display: none; }
+    .app-main.visible { display: block; }
+
+    /* Player overlay */
+    .player-overlay { position: fixed; inset: 0; background: #000; z-index: 100; display: none; flex-direction: column; }
+    .player-overlay.active { display: flex; }
+    .player-stage { flex: 1; position: relative; background: #000; }
+    .player-stage iframe, .player-stage video, .player-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+    /* Modal */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+    .modal.open { display: flex; }
+
+    /* Channel tiles */
+    .ch-tile { background: #141419; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+    .ch-tile:hover { border-color: #ef4444; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(239,68,68,0.15); }
+    .ch-tile-logo { aspect-ratio: 16/9; background: #0d0d12; display: flex; align-items: center; justify-content: center; }
+    .ch-tile-logo img { width: 100%; height: 100%; object-fit: contain; padding: 8px; }
+    .ch-tile-name { padding: 10px 12px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Playlist cards */
+    .pl-card { background: linear-gradient(145deg, #141419, #0f1117); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 20px; cursor: pointer; transition: all 0.25s; min-height: 130px; display: flex; flex-direction: column; gap: 6px; }
+    .pl-card:hover { border-color: #ef4444; transform: translateY(-3px); box-shadow: 0 12px 32px rgba(239,68,68,0.12); }
+    .pl-card.active { border-color: #ef4444; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #ef4444; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+  </style>
+</head>
+<body>
+  <!-- TESLA SPLASH SCREEN (like TeslaPlay) -->
+  <div class="splash-overlay" id="splash">
+    <div class="splash-bg">
+      <img src="https://images.unsplash.com/photo-1617704548623-340376564e68?w=1920&q=80" alt="" onerror="this.style.display='none'">
+      <div class="gradient-left"></div>
+      <div class="gradient-bottom"></div>
+      <div class="overlay-tint"></div>
+    </div>
+    <div class="splash-content">
+      <div></div>
+      <section class="my-auto max-w-[580px] py-6 sm:py-8">
+        <div class="mb-4 hidden items-center gap-2 rounded-md border border-white/[0.08] bg-[#0c0d10]/90 px-2.5 py-1 text-[11px] font-mono uppercase tracking-[0.12em] text-white/60 backdrop-blur-md" style="display:flex">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]"></span>
+          No Device Required
+        </div>
+        <div class="mb-5 sm:mb-6 flex items-center gap-2.5">
+          <svg viewBox="0 0 24 24" fill="currentColor" class="h-7 w-7 sm:h-8 sm:w-8 shrink-0 text-indigo-500">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <span class="text-[18px] sm:text-[20px] font-bold tracking-[-0.04em]">TeslaStream</span>
+        </div>
+        <h1 class="text-[clamp(44px,7.5vw,78px)] font-bold leading-[0.9] tracking-[-0.06em] [text-shadow:0_4px_24px_rgba(0,0,0,0.8)]">
+          Ready to<br>stream.
+        </h1>
+        <p class="mt-5 sm:mt-6 max-w-[400px] text-[15px] sm:text-[16px] font-medium leading-relaxed text-white/60 [text-shadow:0_2px_12px_rgba(0,0,0,0.8)]">
+          No extra device, no install. 100% free.
+        </p>
+      </section>
+      <section class="shrink-0 border-t border-white/[0.08] pt-4" role="status">
+        <div class="mb-4 flex items-center justify-between gap-4 text-[12px]">
+          <div class="flex min-w-0 items-center gap-2.5 text-white/65">
+            <svg class="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M17 2l-5 5-5-5"/></svg>
+            <span id="splash-copy">Loading channels</span>
+          </div>
+          <span class="shrink-0 font-mono text-white/35" id="splash-pct">000%</span>
+        </div>
+        <div class="splash-progress">
+          <div class="splash-progress-bar" id="splash-bar"></div>
+          <div class="splash-progress-marker" id="splash-marker"></div>
+        </div>
+        <div class="mt-3 flex justify-between font-mono text-xs tracking-[0.16em] text-white/25">
+          <span>CONNECT</span><span>SYNC</span><span>OPEN</span>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- MAIN APP (EVStream layout) -->
+  <div class="app-main" id="app">
+    <header class="sticky top-0 z-40 w-full border-b border-white/10 bg-black/70 backdrop-blur-xl">
+      <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-2" onclick="showSection('home'); return false;">
+          <span class="text-2xl font-extrabold tracking-tight"><span class="text-red-500">Tesla</span><span class="text-white">Stream</span></span>
+          <span class="hidden sm:inline text-xs text-gray-300">.app</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-1">
+          <button class="nav-link px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" data-section="home">Home</button>
+          <button class="nav-link px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" data-section="iptv">Live TV</button>
+          <button class="nav-link px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" data-section="youtube">YouTube</button>
+          <button class="px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" onclick="openSettings()">Settings</button>
+        </nav>
+        <button class="md:hidden text-gray-300 p-2" onclick="toggleMobileNav()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+      <div class="md:hidden hidden border-t border-white/10 px-4 py-2" id="mobile-nav">
+        <button class="nav-link block w-full text-left px-3 py-2 text-sm font-medium text-gray-300" data-section="home">Home</button>
+        <button class="nav-link block w-full text-left px-3 py-2 text-sm font-medium text-gray-300" data-section="iptv">Live TV</button>
+        <button class="nav-link block w-full text-left px-3 py-2 text-sm font-medium text-gray-300" data-section="youtube">YouTube</button>
+        <button class="block w-full text-left px-3 py-2 text-sm font-medium text-gray-300" onclick="openSettings()">Settings</button>
+      </div>
+    </header>
+
+    <!-- HOME (EVStream hero layout) -->
+    <section id="home" class="section active">
+      <div class="pointer-events-none fixed inset-0 overflow-hidden -z-10">
+        <div class="absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-red-700/15 blur-[120px]"></div>
+        <div class="absolute top-1/3 -left-40 h-[500px] w-[500px] rounded-full bg-orange-600/10 blur-[120px]"></div>
+        <div class="absolute bottom-0 right-1/4 h-[400px] w-[400px] rounded-full bg-red-900/20 blur-[100px]"></div>
+      </div>
+
+      <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 lg:pt-20 pb-16">
+        <div class="grid lg:grid-cols-2 gap-10 lg:gap-20 items-start">
+          <!-- LEFT: Text -->
+          <div class="order-2 lg:order-1 flex flex-col gap-8 pt-2">
+            <div class="inline-flex w-fit items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-medium text-red-300 backdrop-blur-sm">
+              <span class="h-1.5 w-1.5 rounded-full bg-red-400"></span>
+              Built for Tesla, EV & Web Browsers
+            </div>
+            <div>
+              <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tighter mb-4">
+                <span class="text-white">Stream IPTV</span><br>
+                <span class="bg-gradient-to-r from-red-400 via-orange-300 to-yellow-300 bg-clip-text text-transparent">anywhere.</span>
+              </h1>
+              <p class="text-base sm:text-lg text-white/50 leading-relaxed max-w-sm">Connect your Xtream Codes IPTV provider and watch live TV, movies, and series directly in your browser.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M17 2l-5 5-5-5"/></svg>
+                Live TV
+              </span>
+              <span class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                Movies & Series
+              </span>
+              <span class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                Favorites
+              </span>
+              <span class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Watch history
+              </span>
+              <span class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+                Any device
+              </span>
+            </div>
+          </div>
+
+          <!-- RIGHT: Xtream Form -->
+          <div class="order-1 lg:order-2">
+            <div class="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6 sm:p-8">
+              <div class="flex items-center gap-2 mb-1">
+                <h2 class="text-xl font-bold">XC Credentials</h2>
+              </div>
+              <p class="text-sm text-white/40 mb-6">Enter your Xtream Codes details below</p>
+
+              <div class="flex gap-2 mb-4">
+                <button class="tab-btn flex-1 py-2.5 text-sm font-semibold rounded-lg border border-red-500/50 bg-red-500/10 text-red-400" data-tab="xtream">Xtream Login</button>
+                <button class="tab-btn flex-1 py-2.5 text-sm font-semibold rounded-lg border border-white/10 bg-white/5 text-white/50" data-tab="m3u">Playlist Link</button>
+              </div>
+
+              <div id="xtream-form">
+                <label class="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Server URL</label>
+                <input type="text" id="xt-server" class="w-full px-4 py-3 mb-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500/50" placeholder="http://host:port">
+                <label class="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Username</label>
+                <input type="text" id="xt-user" class="w-full px-4 py-3 mb-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500/50" placeholder="username">
+                <label class="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Password</label>
+                <input type="password" id="xt-pass" class="w-full px-4 py-3 mb-4 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500/50" placeholder="password">
+              </div>
+
+              <div id="m3u-form" style="display:none">
+                <label class="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Playlist Name</label>
+                <input type="text" id="m3u-name" class="w-full px-4 py-3 mb-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500/50" placeholder="My IPTV">
+                <label class="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">M3U URL</label>
+                <input type="text" id="m3u-url" class="w-full px-4 py-3 mb-4 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500/50" placeholder="https://example.com/playlist.m3u">
+              </div>
+
+              <button class="w-full py-3.5 bg-white text-black font-bold rounded-xl text-sm hover:bg-gray-200 transition" id="connect-btn">Connect & Watch</button>
+
+              <div class="flex items-center justify-center gap-4 mt-4 text-[11px] text-white/30">
+                <span class="flex items-center gap-1"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Secure</span>
+                <span class="flex items-center gap-1"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Instant</span>
+                <span class="flex items-center gap-1"><svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg> Free</span>
+              </div>
+
+              <p class="text-center text-xs text-white/30 mt-4">Don't have an IPTV provider? Try the sample below.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recently Watched -->
+      <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12 border-t border-white/5">
+        <h2 class="text-2xl font-black tracking-tight mb-6">Recently Watched</h2>
+        <div id="recent-channels" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+        <div id="recent-empty" class="text-center py-12 text-white/30">
+          <svg class="w-12 h-12 mx-auto mb-3 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <p>No recent channels — start watching!</p>
+        </div>
+      </section>
+
+      <!-- Features section -->
+      <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5">
+        <h2 class="text-3xl sm:text-4xl font-black tracking-tight mb-4">Everything IPTV, <span class="bg-gradient-to-r from-red-400 to-orange-300 bg-clip-text text-transparent">in one place.</span></h2>
+        <p class="text-white/40 mb-10 max-w-lg">A single dashboard for live TV, movies, series and everything that makes finding and resuming what you watch effortless.</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+            <div class="text-2xl mb-3">📺</div>
+            <h3 class="font-bold mb-1">Live TV</h3>
+            <p class="text-sm text-white/40">Thousands of channels from your IPTV provider, playing instantly.</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+            <div class="text-2xl mb-3">🎬</div>
+            <h3 class="font-bold mb-1">Movies & Series</h3>
+            <p class="text-sm text-white/40">A full VOD library on demand — no extra app required.</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+            <div class="text-2xl mb-3">🚗</div>
+            <h3 class="font-bold mb-1">Tesla & EV Mode</h3>
+            <p class="text-sm text-white/40">Dedicated viewing mode built for your car's browser with canvas bypass.</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+            <div class="text-2xl mb-3">💬</div>
+            <h3 class="font-bold mb-1">Subtitles</h3>
+            <p class="text-sm text-white/40">Dozens of languages, automatically matched to what you're watching.</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+            <div class="text-2xl mb-3">❤️</div>
+            <h3 class="font-bold mb-1">Favorites</h3>
+            <p class="text-sm text-white/40">Pin channels and categories you watch most for one-click access.</p>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+            <div class="text-2xl mb-3">▶️</div>
+            <h3 class="font-bold mb-1">YouTube</h3>
+            <p class="text-sm text-white/40">Browse and play YouTube without ads, built for car browsers.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Who uses it -->
+      <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5">
+        <h2 class="text-3xl sm:text-4xl font-black tracking-tight mb-10">Built for people tired of outdated IPTV apps.</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="text-center p-6 rounded-xl border border-white/10 bg-white/[0.03]"><div class="text-3xl mb-2">🏆</div><div class="font-bold text-sm">Sports Fans</div></div>
+          <div class="text-center p-6 rounded-xl border border-white/10 bg-white/[0.03]"><div class="text-3xl mb-2">🎬</div><div class="font-bold text-sm">Movie Lovers</div></div>
+          <div class="text-center p-6 rounded-xl border border-white/10 bg-white/[0.03]"><div class="text-3xl mb-2">✈️</div><div class="font-bold text-sm">Travelers</div></div>
+          <div class="text-center p-6 rounded-xl border border-white/10 bg-white/[0.03]"><div class="text-3xl mb-2">🚗</div><div class="font-bold text-sm">Tesla & EV Owners</div></div>
+        </div>
+      </section>
+
+      <!-- Catch-Up / YouTube feature -->
+      <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5">
+        <div class="grid lg:grid-cols-2 gap-10 items-center">
+          <div>
+            <h2 class="text-3xl sm:text-4xl font-black tracking-tight mb-4">YouTube, <span class="bg-gradient-to-r from-red-400 to-orange-300 bg-clip-text text-transparent">without the ads.</span></h2>
+            <p class="text-white/40 mb-6 leading-relaxed">Search and play YouTube inside TeslaStream, in a smoother player designed for the browsers built into cars — where the normal site is heavy, awkward to control, and full of interruptions.</p>
+            <ul class="space-y-3 mb-8">
+              <li class="flex items-center gap-3 text-sm text-white/60"><span class="text-red-400">✓</span> No IPTV provider needed to look around</li>
+              <li class="flex items-center gap-3 text-sm text-white/60"><span class="text-red-400">✓</span> A player built for in-car and limited browsers</li>
+              <li class="flex items-center gap-3 text-sm text-white/60"><span class="text-red-400">✓</span> No ads interrupting what you're watching</li>
+            </ul>
+            <button class="px-6 py-3 bg-white text-black font-bold rounded-xl text-sm hover:bg-gray-200" onclick="showSection('youtube')">Try YouTube Free</button>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/[0.03] overflow-hidden aspect-video flex items-center justify-center">
+            <div class="text-center p-8">
+              <div class="text-5xl mb-4">▶️</div>
+              <div class="text-white/40 text-sm">YouTube plays here — ad-free</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- How it works -->
+      <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5">
+        <h2 class="text-3xl sm:text-4xl font-black tracking-tight mb-4">Simple setup, <span class="bg-gradient-to-r from-red-400 to-orange-300 bg-clip-text text-transparent">no matter your provider.</span></h2>
+        <p class="text-white/40 mb-10 max-w-lg">Enter your server, username, and password, and you're watching — no downloads, no complicated setup.</p>
+        <div class="grid sm:grid-cols-3 gap-6">
+          <div class="flex gap-4">
+            <div class="shrink-0 w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 font-bold text-sm">1</div>
+            <div><h4 class="font-bold text-sm mb-1">Enter credentials</h4><p class="text-xs text-white/40">Server, username, password — or paste an M3U link.</p></div>
+          </div>
+          <div class="flex gap-4">
+            <div class="shrink-0 w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 font-bold text-sm">2</div>
+            <div><h4 class="font-bold text-sm mb-1">Browse channels</h4><p class="text-xs text-white/40">Live TV, Movies & Series — all organized by category.</p></div>
+          </div>
+          <div class="flex gap-4">
+            <div class="shrink-0 w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 font-bold text-sm">3</div>
+            <div><h4 class="font-bold text-sm mb-1">Start watching</h4><p class="text-xs text-white/40">Tap any channel — plays instantly in your browser.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Streaming Services -->
+      <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5">
+        <h2 class="text-2xl font-black tracking-tight mb-6">Also included</h2>
+        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+          <div class="flex flex-col items-center gap-2 p-4 rounded-xl border border-white/10 bg-white/[0.03] hover:border-red-500/50 transition cursor-pointer" onclick="showSection('youtube')">
+            <svg class="w-8 h-8 text-red-400" viewBox="0 0 24 24" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19.1c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48" fill="#fff"/></svg>
+            <span class="text-xs font-semibold text-white/60">YouTube</span>
+          </div>
+          <div class="flex flex-col items-center gap-2 p-4 rounded-xl border border-white/10 bg-white/[0.03]">
+            <svg class="w-8 h-8 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M5.398 0v.001c-.897 0-5.398.451-5.398 7.763 0 6.792 5.26 8.087 5.26 12.234 0 1.39-.525 2.005-1.502 2.005H7.58c.98 0 1.502-.615 1.502-2.005 0-4.147 5.259-5.442 5.259-12.234C14.341.451 9.845 0 9.449 0H5.398zm16.449 11.25c-.457 2.428-2.026 3.877-2.026 6.75 0 1.39-.525 2.005-1.502 2.005h-3.04c.98 0 1.502-.615 1.502-2.005 0-2.873-1.569-4.322-2.026-6.75h7.092z"/></svg>
+            <span class="text-xs font-semibold text-white/60">Netflix</span>
+          </div>
+          <div class="flex flex-col items-center gap-2 p-4 rounded-xl border border-white/10 bg-white/[0.03]">
+            <svg class="w-8 h-8 text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/></svg>
+            <span class="text-xs font-semibold text-white/60">Disney+</span>
+          </div>
+          <div class="flex flex-col items-center gap-2 p-4 rounded-xl border border-white/10 bg-white/[0.03]">
+            <svg class="w-8 h-8 text-green-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            <span class="text-xs font-semibold text-white/60">Hulu</span>
+          </div>
+          <div class="flex flex-col items-center gap-2 p-4 rounded-xl border border-white/10 bg-white/[0.03]">
+            <svg class="w-8 h-8 text-blue-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            <span class="text-xs font-semibold text-white/60">Prime</span>
+          </div>
+          <div class="flex flex-col items-center gap-2 p-4 rounded-xl border border-white/10 bg-white/[0.03]">
+            <svg class="w-8 h-8 text-purple-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            <span class="text-xs font-semibold text-white/60">MAX</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5">
+        <h2 class="text-3xl sm:text-4xl font-black tracking-tight mb-10">Frequently asked questions.</h2>
+        <div class="space-y-4 max-w-3xl">
+          <details class="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden group">
+            <summary class="px-6 py-4 font-bold text-sm cursor-pointer hover:text-red-400 transition">What is TeslaStream?</summary>
+            <div class="px-6 pb-4 text-sm text-white/40 leading-relaxed">TeslaStream is a free IPTV player that works in your Tesla, EV, or any web browser. It connects to your Xtream Codes IPTV provider and plays live TV, movies, and series directly — no app install needed.</div>
+          </details>
+          <details class="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden group">
+            <summary class="px-6 py-4 font-bold text-sm cursor-pointer hover:text-red-400 transition">Do I need an IPTV subscription?</summary>
+            <div class="px-6 pb-4 text-sm text-white/40 leading-relaxed">Yes — you need credentials from an IPTV provider (server URL, username, password). TeslaStream is the player; the content comes from your provider. We also include sample channels to try without any subscription.</div>
+          </details>
+          <details class="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden group">
+            <summary class="px-6 py-4 font-bold text-sm cursor-pointer hover:text-red-400 transition">Does this work in my Tesla or EV's browser?</summary>
+            <div class="px-6 pb-4 text-sm text-white/40 leading-relaxed">Yes. TeslaStream is specifically built for Tesla and EV browsers. It uses a canvas-based renderer that bypasses the driving playback restriction — you can watch while parked or charging.</div>
+          </details>
+          <details class="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden group">
+            <summary class="px-6 py-4 font-bold text-sm cursor-pointer hover:text-red-400 transition">Do I need to install anything?</summary>
+            <div class="px-6 pb-4 text-sm text-white/40 leading-relaxed">No. TeslaStream is a web app — open it in any browser and start watching. On Tesla, you can add it to your home screen for a full-screen app icon.</div>
+          </details>
+          <details class="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden group">
+            <summary class="px-6 py-4 font-bold text-sm cursor-pointer hover:text-red-400 transition">Is my information safe?</summary>
+            <div class="px-6 pb-4 text-sm text-white/40 leading-relaxed">Yes. Everything is stored locally in your browser — nothing is sent to our servers. Your credentials stay on your device.</div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Try sample CTA -->
+      <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 border-t border-white/5 text-center">
+        <h2 class="text-3xl sm:text-4xl font-black tracking-tight mb-4">Ready to make IPTV easier?</h2>
+        <p class="text-white/40 mb-8 max-w-md mx-auto">Start watching now — no signup, no subscription, completely free.</p>
+        <button class="px-8 py-4 bg-white text-black font-bold rounded-xl text-base hover:bg-gray-200 transition" onclick="loadSample()">Try Sample Channels</button>
+      </section>
+
+      <!-- Legal Disclaimer -->
+      <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10 border-t border-white/5">
+        <div class="rounded-xl border border-white/10 bg-white/[0.02] p-6">
+          <h3 class="font-bold text-sm mb-2">Legal Disclosure / Disclaimer</h3>
+          <p class="text-xs text-white/30 leading-relaxed">TeslaStream is a video player only. We do not provide, host, sell, distribute, or control any content or streaming services. Users are solely responsible for providing valid credentials and must ensure they have the legal right to access any streamed content. TeslaStream does not verify content ownership and disclaims any liability from unauthorized use of third-party content. By using this platform, you agree to comply with all applicable laws and licensing requirements.</p>
+        </div>
+      </section>
+    </section>
+
+    <!-- IPTV SECTION -->
+    <section id="iptv" class="section hidden">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
+        <h2 class="text-3xl font-black tracking-tight mb-2">Your <span class="bg-gradient-to-r from-red-400 to-orange-300 bg-clip-text text-transparent">IPTV</span> playlists</h2>
+        <p class="text-white/40 mb-8">Add M3U playlist links or Xtream Codes — each becomes a tile.</p>
+
+        <div class="rounded-xl border border-white/10 bg-white/[0.03] p-5 mb-8">
+          <div class="flex flex-wrap gap-3">
+            <input type="text" id="iptv-name" class="px-4 py-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none w-48" placeholder="Name (e.g. Sports)">
+            <input type="text" id="iptv-url" class="flex-1 min-w-0 px-4 py-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none" placeholder="https://example.com/playlist.m3u or http://host:port">
+            <button class="px-6 py-3 bg-white text-black font-bold rounded-xl text-sm hover:bg-gray-200" id="iptv-add-btn">Add Playlist</button>
+            <button class="px-4 py-3 border border-white/10 bg-white/5 text-white/60 font-semibold rounded-xl text-sm hover:border-red-500 hover:text-red-400" id="iptv-xtream-btn">Xtream Login</button>
+            <button class="px-4 py-3 border border-white/10 bg-white/5 text-white/60 font-semibold rounded-xl text-sm hover:border-red-500 hover:text-red-400" onclick="loadSample()">Try Sample</button>
+          </div>
+          <div id="xtream-extra" class="hidden mt-3 flex gap-3">
+            <input type="text" id="xt2-user" class="px-4 py-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none w-48" placeholder="Xtream username">
+            <input type="text" id="xt2-pass" class="px-4 py-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none w-48" placeholder="Xtream password">
+          </div>
+        </div>
+
+        <h3 class="text-lg font-bold mb-4">My Playlists</h3>
+        <div id="pl-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"></div>
+        <div id="pl-empty" class="text-center py-16 text-white/30">
+          <p>No playlists yet — add your first M3U link above.</p>
+        </div>
+
+        <div id="ch-section" class="hidden">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold" id="ch-title">Channels</h3>
+            <input type="text" id="ch-filter" class="px-4 py-2 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none w-64" placeholder="Filter channels...">
+          </div>
+          <div id="ch-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+          <div id="ch-empty" class="hidden text-center py-12 text-white/30">No channels match your filter.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- YOUTUBE SECTION -->
+    <section id="youtube" class="section hidden">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
+        <h2 class="text-3xl font-black tracking-tight mb-2">Watch <span class="bg-gradient-to-r from-red-400 to-orange-300 bg-clip-text text-transparent">YouTube</span> in your Tesla</h2>
+        <p class="text-white/40 mb-8">Paste any YouTube link, or search. Plays via privacy embed.</p>
+        <div class="flex gap-3 mb-8">
+          <input type="text" id="yt-search" class="flex-1 px-4 py-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-red-500 focus:outline-none" placeholder="Search, or paste a YouTube link / video ID">
+          <button class="px-6 py-3 bg-white text-black font-bold rounded-xl text-sm hover:bg-gray-200" id="yt-go">Play</button>
+        </div>
+        <div id="yt-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div id="yt-empty" class="hidden text-center py-16 text-white/30">No videos found.</div>
+      </div>
+    </section>
+
+    <footer class="border-t border-white/5 py-10">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid sm:grid-cols-3 gap-8 mb-8">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xl font-extrabold"><span class="text-red-500">Tesla</span><span class="text-white">Stream</span></span>
+            </div>
+            <p class="text-xs text-white/30 leading-relaxed">Watch IPTV, live TV and sports in your Tesla, EV or any web browser. 100% free.</p>
+          </div>
+          <div>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-white/40 mb-3">Product</h4>
+            <ul class="space-y-2 text-sm">
+              <li><button class="text-white/40 hover:text-white" onclick="showSection('home')">Home</button></li>
+              <li><button class="text-white/40 hover:text-white" onclick="showSection('iptv')">Live TV</button></li>
+              <li><button class="text-white/40 hover:text-white" onclick="showSection('youtube')">YouTube</button></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-white/40 mb-3">Legal</h4>
+            <ul class="space-y-2 text-sm text-white/40">
+              <li>Privacy Policy</li>
+              <li>Terms of Service</li>
+              <li>Copyright & DMCA</li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-t border-white/5 pt-6 text-center text-xs text-white/20">
+          &copy; 2026 TeslaStream. All rights reserved. Passenger &amp; parked viewing only — drivers keep eyes on the road.
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- PLAYER -->
+  <div class="player-overlay" id="player">
+    <div class="flex items-center gap-3 px-4 py-3 bg-[#0a0a0f] border-b border-white/10">
+      <h3 class="text-sm font-bold flex-1 truncate" id="player-title">Player</h3>
+      <button class="px-3 py-2 text-xs font-semibold text-white/50 border border-white/10 rounded-lg hover:text-red-400 hover:border-red-500" id="player-chat-btn">💬 Chat</button>
+      <button class="px-3 py-2 text-xs font-semibold text-white/50 border border-white/10 rounded-lg hover:text-red-400 hover:border-red-500" id="player-close">✕ Close</button>
+    </div>
+    <div class="player-stage" id="player-stage"></div>
+    <div class="flex items-center gap-3 px-4 py-3 bg-[#0a0a0f] border-t border-white/10">
+      <select id="player-quality" class="px-3 py-2 bg-[#0d0d12] border border-white/10 rounded-lg text-white text-xs"></select>
+      <div class="flex-1"></div>
+      <button class="px-4 py-2 text-xs font-bold bg-white text-black rounded-lg hover:bg-gray-200" id="player-fullscreen">Fullscreen</button>
+    </div>
+  </div>
+
+  <!-- CHANNEL MODAL -->
+  <div class="modal" id="ch-modal">
+    <div class="bg-[#141419] border border-white/10 rounded-2xl p-6 max-w-sm w-full text-center">
+      <div id="ch-modal-logo" class="mb-3"></div>
+      <h2 class="text-xl font-bold mb-1" id="ch-modal-name">Channel</h2>
+      <p class="text-sm text-red-400 font-semibold mb-5" id="ch-modal-group"></p>
+      <button class="w-full py-3.5 bg-white text-black font-bold rounded-xl text-sm hover:bg-gray-200 mb-2" id="ch-modal-play">▶ &nbsp;Play</button>
+      <button class="w-full py-3 border border-white/10 text-white/50 font-semibold rounded-xl text-sm hover:border-red-500 hover:text-red-400" id="ch-modal-close">Close</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal" id="settings-modal">
+    <div class="bg-[#141419] border border-white/10 rounded-2xl p-6 max-w-md w-full">
+      <h2 class="text-xl font-bold mb-2">Settings</h2>
+      <p class="text-sm text-white/40 mb-5">Everything is stored only in this browser.</p>
+      <label class="block text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Canvas Mode (Tesla Driving Bypass)</label>
+      <label class="flex items-center gap-3 cursor-pointer mb-3">
+        <input type="checkbox" id="set-canvas" class="w-5 h-5 rounded">
+        <span class="text-sm">Force canvas renderer</span>
+      </label>
+      <p class="text-xs text-white/30 mb-5">Tesla detected: <span id="tesla-status">Checking...</span></p>
+      <div class="flex gap-3">
+        <button class="flex-1 py-3 bg-white text-black font-bold rounded-xl text-sm hover:bg-gray-200" id="settings-save">Save</button>
+        <button class="flex-1 py-3 border border-white/10 text-white/50 font-semibold rounded-xl text-sm hover:border-red-500 hover:text-red-400" id="settings-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
