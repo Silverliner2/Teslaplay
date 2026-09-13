@@ -695,6 +695,203 @@ $('yt-go').addEventListener('click', async () => {
 $('yt-search')?.addEventListener('keydown', e => { if (e.key === 'Enter') $('yt-go').click(); });
 renderYTList(YT_SHORTS);
 
+/* ============================================================
+ * TWITCH — live stream via WebGL bypass
+ * ============================================================ */
+const TWITCH_CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
+const TWITCH_GQL = 'https://gql.twitch.tv/gql';
+const TWITCH_USHER = 'https://usher.ttvnw.net/api/channel/hls';
+
+async function getTwitchAccessToken(channel) {
+  const body = JSON.stringify({
+    operationName: 'PlaybackAccessToken',
+    variables: { isLive: true, login: channel, isVod: false, vodID: '', playerType: 'site' },
+    extensions: {
+      persistedQuery: {
+        version: 1,
+        sha256Hash: '0828119ded1c13477966434e15800ff57ddacf13ba1911c129dc2200705b0712'
+      }
+    }
+  });
+
+  const r = await fetch(TWITCH_GQL, {
+    method: 'POST',
+    headers: { 'Client-ID': TWITCH_CLIENT_ID, 'Content-Type': 'application/json' },
+    body
+  });
+  if (!r.ok) throw new Error(`Twitch GQL failed: ${r.status}`);
+  const j = await r.json();
+  const token = j?.data?.streamPlaybackAccessToken;
+  if (!token) throw new Error('Channel may be offline or not found.');
+  return token;
+}
+
+async function getTwitchM3U8(channel) {
+  const token = await getTwitchAccessToken(channel);
+  const params = new URLSearchParams({
+    allow_source: 'true',
+    allow_audio_only: 'true',
+    fast_bread: 'true',
+    p: String(Math.floor(Math.random() * 1e7)),
+    player_backend: 'mediaplayer',
+    sig: token.signature,
+    token: token.value,
+  });
+  const url = `${TWITCH_USHER}/${encodeURIComponent(channel)}.m3u8?${params}`;
+
+  /* Try direct first, then CORS proxies */
+  const tryFetch = async (u) => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 10000);
+    try {
+      const r = await fetch(u, { signal: ctrl.signal });
+      clearTimeout(t);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.text();
+    } catch (e) { clearTimeout(t); throw e; }
+  };
+
+  /* Try direct */
+  try {
+    const text = await tryFetch(url);
+    if (text && /#EXTM3U/i.test(text)) return text;
+  } catch {}
+
+  /* Try CORS proxies */
+  const proxies = [
+    (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+    (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    (u) => `https://api.cors.lol/?url=${encodeURIComponent(u)}`,
+  ];
+  for (const wrap of proxies) {
+    try {
+      const text = await tryFetch(wrap(url));
+      if (text && /#EXTM3U/i.test(text)) return text;
+    } catch {}
+  }
+  throw new Error('Could not fetch Twitch stream. CORS may be blocking.');
+}
+
+function parseTwitchM3U8(m3u8Text) {
+  const lines = m3u8Text.split('\n');
+  const qualities = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line.startsWith('#EXT-X-STREAM-INF:')) {
+      const nameMatch = line.match(/NAME="([^"]+)"/);
+      const resMatch = line.match(/RESOLUTION=(\d+x\d+)/);
+      const bwMatch = line.match(/BANDWIDTH=(\d+)/);
+      const nextLine = (lines[i + 1] || '').trim();
+      if (nextLine && !nextLine.startsWith('#')) {
+        qualities.push({
+          name: nameMatch?.[1] || resMatch?.[1] || 'Auto',
+          resolution: resMatch?.[1] || '',
+          bandwidth: bwMatch ? parseInt(bwMatch[1]) : 0,
+          url: nextLine,
+        });
+      }
+    }
+  }
+  return qualities.sort((a, b) => b.bandwidth - a.bandwidth);
+}
+
+async function openTwitchPlayer(channel) {
+  if (!channel) return;
+  channel = channel.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+  if (!channel) return;
+
+  const status = $('tw-status');
+  const nameEl = $('tw-channel-name');
+  status.classList.remove('hidden');
+  nameEl.textContent = channel;
+
+  openPlayer(`Twitch — ${channel}`);
+  playerStage.innerHTML = `
+    <div id="tw-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.5);text-align:center;z-index:10">
+      <div class="spinner"></div><div>Connecting to ${esc(channel)}...</div>
+    </div>`;
+
+  try {
+    const m3u8Text = await getTwitchM3U8(channel);
+    const qualities = parseTwitchM3U8(m3u8Text);
+    if (!qualities.length) throw new Error('No quality variants found.');
+
+    /* Build quality selector */
+    qualitySelect.innerHTML = qualities.map((q, i) =>
+      `<option value="${i}">${q.name}${q.resolution ? ' (' + q.resolution + ')' : ''}</option>`
+    ).join('');
+    qualitySelect.onchange = () => {
+      const idx = parseInt(qualitySelect.value);
+      if (qualities[idx]) playTwitchStream(qualities[idx].url, channel);
+    };
+
+    /* Play highest quality */
+    $('tw-loading')?.remove();
+    playTwitchStream(qualities[0].url, channel);
+  } catch (e) {
+    const l = $('tw-loading');
+    if (l) l.innerHTML = `<div style="color:#ef4444;max-width:400px">Failed to connect: ${esc(e.message)}<br><span style="font-size:12px;opacity:0.5">Make sure the channel name is correct and the stream is live.</span></div>`;
+  }
+}
+
+function playTwitchStream(hlsUrl, channel) {
+  destroyPlayer();
+
+  /* Build absolute URL if relative */
+  if (hlsUrl && !hlsUrl.startsWith('http')) {
+    hlsUrl = `https://usher.ttvnw.net${hlsUrl}`;
+  }
+
+  if (USE_CANVAS && window.THREE) {
+    playerStage.innerHTML = `
+      <div id="ts-webgl-container" style="width:100%;height:100%;background:#000;position:relative"></div>
+      <div id="ts-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.5);text-align:center;z-index:10">
+        <div class="spinner"></div><div>Loading stream via WebGL...</div>
+      </div>`;
+    const container = $('ts-webgl-container');
+    canvasPlayer = new WebGLVideoPlayer(container);
+    canvasPlayer.loadSource(hlsUrl)
+      .then(() => { $('ts-loading')?.remove(); canvasPlayer.play(); })
+      .catch((e) => { const l = $('ts-loading'); if (l) l.innerHTML = `<div style="color:#ef4444">Stream error: ${esc(e.message)}</div>`; });
+    return;
+  }
+
+  if (USE_CANVAS) {
+    playerStage.innerHTML = `
+      <video id="ts-video" playsinline muted style="display:none"></video>
+      <canvas id="ts-canvas" style="width:100%;height:100%;background:#000;display:block"></canvas>
+      <div id="ts-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.5);text-align:center;z-index:10">
+        <div class="spinner"></div><div>Loading stream...</div>
+      </div>`;
+    canvasPlayer = new CanvasHlsPlayer($('ts-video'), $('ts-canvas'));
+    canvasPlayer.loadSource(hlsUrl)
+      .then(() => { $('ts-loading')?.remove(); canvasPlayer.play(); })
+      .catch((e) => { const l = $('ts-loading'); if (l) l.innerHTML = `<div style="color:#ef4444">Stream error: ${esc(e.message)}</div>`; });
+    return;
+  }
+
+  /* Native fallback */
+  playerStage.innerHTML = `<video id="ts-video" controls playsinline autoplay style="background:#000;width:100%;height:100%"></video>`;
+  const video = $('ts-video');
+  if (window.Hls && Hls.isSupported()) {
+    hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: true });
+    hlsInstance.loadSource(hlsUrl);
+    hlsInstance.attachMedia(video);
+    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = hlsUrl;
+    video.play().catch(() => {});
+  }
+}
+
+$('tw-go').addEventListener('click', () => {
+  const ch = $('tw-search').value.trim().replace(/^(https?:\/\/)?(www\.)?twitch\.tv\//i, '');
+  if (!ch) { alert('Enter a Twitch channel name.'); return; }
+  $('tw-search').value = ch;
+  openTwitchPlayer(ch);
+});
+$('tw-search')?.addEventListener('keydown', e => { if (e.key === 'Enter') $('tw-go').click(); });
+
 /* ---------- Settings ---------- */
 function openSettings() {
   $('set-canvas').checked = store.get('ts.forceCanvas', false);

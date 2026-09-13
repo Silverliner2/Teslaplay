@@ -106,6 +106,7 @@
           <button class="nav-link px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" data-section="home">Home</button>
           <button class="nav-link px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" data-section="iptv">Live TV</button>
           <button class="nav-link px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" data-section="youtube">YouTube</button>
+          <button class="nav-link px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" data-section="twitch">Twitch</button>
           <button class="px-3 py-2 text-sm font-medium text-gray-300 hover:text-white" onclick="openSettings()">Settings</button>
         </nav>
         <button class="md:hidden text-gray-300 p-2" onclick="toggleMobileNav()">
@@ -116,6 +117,7 @@
         <button class="nav-link block w-full text-left px-3 py-2 text-sm font-medium text-gray-300" data-section="home">Home</button>
         <button class="nav-link block w-full text-left px-3 py-2 text-sm font-medium text-gray-300" data-section="iptv">Live TV</button>
         <button class="nav-link block w-full text-left px-3 py-2 text-sm font-medium text-gray-300" data-section="youtube">YouTube</button>
+        <button class="nav-link block w-full text-left px-3 py-2 text-sm font-medium text-gray-300" data-section="twitch">Twitch</button>
         <button class="block w-full text-left px-3 py-2 text-sm font-medium text-gray-300" onclick="openSettings()">Settings</button>
       </div>
     </header>
@@ -163,6 +165,9 @@
               </span>
               <span class="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60">
                 <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><text x="12" y="15.3" text-anchor="middle" font-size="8.5" font-weight="700" font-family="system-ui,sans-serif" fill="currentColor" stroke="none">CC</text></svg>Subtitles
+              </span>
+              <span class="flex items-center gap-1.5 rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1.5 text-xs text-purple-300">
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>Twitch
               </span>
             </div>
           </div>
@@ -335,6 +340,16 @@
               <h3 class="text-base font-semibold tracking-tight text-white">Any Device</h3>
               <p class="mt-1.5 text-sm text-white/45 leading-relaxed">Works in any modern browser — desktop, mobile, tablet, or your car. No app install required.</p>
             </article>
+            <!-- Twitch -->
+            <article class="group relative overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] p-5 sm:p-6 transition duration-300 hover:-translate-y-1 hover:border-white/[0.16] hover:bg-white/[0.05]">
+              <div class="mb-4 flex items-start justify-between gap-3">
+                <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg shadow-black/25">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+                </div>
+              </div>
+              <h3 class="text-base font-semibold tracking-tight text-white">Twitch</h3>
+              <p class="mt-1.5 text-sm text-white/45 leading-relaxed">Watch live Twitch streams through the WebGL bypass — works in your car's browser.</p>
+            </article>
           </div>
         </section>
       </section>
@@ -397,6 +412,9 @@
               </li>
               <li class="flex items-center gap-2.5 text-sm text-white/70">
                 <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-500/15 border border-green-500/25 text-green-400 text-[10px] font-bold">✓</span>Save multiple playlists and providers
+              </li>
+              <li class="flex items-center gap-2.5 text-sm text-white/70">
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-500/15 border border-purple-500/25 text-purple-400 text-[10px] font-bold">✓</span>Twitch live streams via WebGL bypass
               </li>
             </ul>
           </div>
@@ -520,6 +538,31 @@
       </div>
     </section>
 
+    <!-- TWITCH SECTION -->
+    <section id="twitch" class="section hidden">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
+        <h2 class="text-3xl font-black tracking-tight mb-2">Watch <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Twitch</span> in your Tesla</h2>
+        <p class="text-white/40 mb-8">Enter a Twitch channel name. Streams via WebGL bypass — works while parked or charging.</p>
+        <div class="flex gap-3 mb-8">
+          <input type="text" id="tw-search" class="flex-1 px-4 py-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-purple-500 focus:outline-none" placeholder="Twitch channel name (e.g. shroud)">
+          <button class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl text-sm hover:from-purple-500 hover:to-pink-500" id="tw-go">Watch Live</button>
+        </div>
+        <div id="tw-status" class="hidden mb-6 rounded-xl border border-purple-500/20 bg-purple-500/10 p-4">
+          <div class="flex items-center gap-3">
+            <span class="h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
+            <span class="text-sm font-semibold text-purple-300" id="tw-channel-name"></span>
+            <span class="text-xs text-white/40">LIVE</span>
+          </div>
+        </div>
+        <div id="tw-channels" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div id="tw-empty" class="text-center py-16 text-white/30">
+          <svg class="w-16 h-16 mx-auto mb-4 opacity-20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+          <p class="text-lg font-semibold mb-2">Enter a channel name above</p>
+          <p class="text-sm">Popular channels to try: shroud, ninja, pokimane, xQc, summ1t</p>
+        </div>
+      </div>
+    </section>
+
     <!-- FOOTER -->
     <footer class="border-t border-white/5 py-10">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -536,6 +579,7 @@
               <li><button class="text-white/40 hover:text-white" onclick="showSection('home')">Home</button></li>
               <li><button class="text-white/40 hover:text-white" onclick="showSection('iptv')">Live TV</button></li>
               <li><button class="text-white/40 hover:text-white" onclick="showSection('youtube')">YouTube</button></li>
+              <li><button class="text-white/40 hover:text-white" onclick="showSection('twitch')">Twitch</button></li>
             </ul>
           </div>
           <div>
