@@ -265,6 +265,7 @@ function showSection(id) {
   document.querySelectorAll('.nav-link').forEach(b => b.classList.toggle('text-gray-300', b.dataset.section !== id));
   if (id === 'iptv') renderPlaylists();
   if (id === 'home') renderRecent();
+  if (id === 'twitch' && twAllCategories.length === 0) twLoadBrowse();
 }
 document.querySelectorAll('.nav-link').forEach(btn => {
   if (btn.dataset.section) btn.addEventListener('click', () => { showSection(btn.dataset.section); $('mobile-nav')?.classList.add('hidden'); });
@@ -696,12 +697,120 @@ $('yt-search')?.addEventListener('keydown', e => { if (e.key === 'Enter') $('yt-
 renderYTList(YT_SHORTS);
 
 /* ============================================================
- * TWITCH — live stream via WebGL bypass
+ * TWITCH — browse categories, live channels, WebGL bypass
  * ============================================================ */
 const TWITCH_CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
 const TWITCH_GQL = 'https://gql.twitch.tv/gql';
 const TWITCH_USHER = 'https://usher.ttvnw.net/api/channel/hls';
 
+let twCurrentTab = 'categories';
+let twCurrentGame = null;
+let twAllCategories = [];
+let twAllStreams = [];
+
+/* ---------- Twitch GQL helpers ---------- */
+async function twGQL(operationName, query, variables = {}) {
+  const r = await fetch(TWITCH_GQL, {
+    method: 'POST',
+    headers: { 'Client-ID': TWITCH_CLIENT_ID, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ operationName, query, variables })
+  });
+  if (!r.ok) throw new Error(`Twitch GQL ${r.status}`);
+  return (await r.json())?.data;
+}
+
+async function twFetchTopCategories(first = 30) {
+  const query = `query DirectoryFrontPage($first: Int!) {
+    directory { topCategories(first: $first) {
+      edges { node {
+        id name slug
+        boxArtURL(width: 285, height: 380)
+        viewers { edges { node { viewerCount } } }
+        tags { edges { node { localizedName } } }
+      } }
+    }
+  }`;
+  const data = await twGQL('DirectoryFrontPage', query, { first });
+  const edges = data?.directory?.topCategories?.edges || [];
+  return edges.map(e => ({
+    id: e.node.id,
+    name: e.node.name,
+    slug: e.node.slug,
+    boxArt: e.node.boxArtURL,
+    viewers: e.node.viewers?.edges?.[0]?.node?.viewerCount || 0,
+    tags: (e.node.tags?.edges || []).map(t => t.node.localizedName).slice(0, 2),
+  }));
+}
+
+async function twFetchLiveStreams(first = 20, game = null) {
+  let query, variables = { first };
+  if (game) {
+    query = `query DirectoryPage($first: Int!, $name: String!) {
+      directory { searchCategories(first: $first, query: $name) {
+        edges { node { id name } }
+      } }
+    }`;
+    const catData = await twGQL('DirectoryPage', query, variables);
+    const catEdges = catData?.directory?.searchCategories?.edges || [];
+    if (!catEdges.length) return [];
+
+    const catId = catEdges[0].node.id;
+    const streamQuery = `query StreamsByGame($first: Int!, $categoryId: ID!) {
+      streams(first: $first, gameID: $categoryId) {
+        edges { node {
+          id title viewersCount
+          displayName login
+          previewImageURL(width: 440, height: 248)
+          game { name }
+          tags { localizedName }
+          type
+        } }
+      }
+    }`;
+    const streamData = await twGQL('StreamsByGame', streamQuery, { first, categoryId: catId });
+    const streamEdges = streamData?.streams?.edges || [];
+    return streamEdges.filter(e => e.node.type === 'live').map(e => ({
+      id: e.node.id,
+      title: e.node.title,
+      viewers: e.node.viewersCount,
+      displayName: e.node.displayName,
+      login: e.node.login,
+      preview: e.node.previewImageURL,
+      game: e.node.game?.name || '',
+      tags: (e.node.tags || []).slice(0, 3).map(t => t.localizedName),
+      live: e.node.type === 'live',
+    }));
+  }
+
+  /* No game filter — fetch top live streams */
+  const streamQuery = `query TopStreams($first: Int!) {
+    streams(first: $first) {
+      edges { node {
+        id title viewersCount
+        displayName login
+        previewImageURL(width: 440, height: 248)
+        game { name }
+        tags { localizedName }
+        type
+      } }
+    }
+  }`;
+  const data = await twGQL('TopStreams', streamQuery, { first });
+  const edges = data?.streams?.edges || [];
+  return edges.filter(e => e.node.type === 'live').map(e => ({
+    id: e.node.id,
+    title: e.node.title,
+    viewers: e.node.viewersCount,
+    displayName: e.node.displayName,
+    login: e.node.login,
+    preview: e.node.previewImageURL,
+    game: e.node.game?.name || '',
+    tags: (e.node.tags || []).slice(0, 3).map(t => t.localizedName),
+    live: e.node.type === 'live',
+  }));
+}
+
+/* ---------- HLS / access token ---------- */
 async function getTwitchAccessToken(channel) {
   const body = JSON.stringify({
     operationName: 'PlaybackAccessToken',
@@ -713,7 +822,6 @@ async function getTwitchAccessToken(channel) {
       }
     }
   });
-
   const r = await fetch(TWITCH_GQL, {
     method: 'POST',
     headers: { 'Client-ID': TWITCH_CLIENT_ID, 'Content-Type': 'application/json' },
@@ -729,168 +837,322 @@ async function getTwitchAccessToken(channel) {
 async function getTwitchM3U8(channel) {
   const token = await getTwitchAccessToken(channel);
   const params = new URLSearchParams({
-    allow_source: 'true',
-    allow_audio_only: 'true',
-    fast_bread: 'true',
+    allow_source: 'true', allow_audio_only: 'true', fast_bread: 'true',
     p: String(Math.floor(Math.random() * 1e7)),
-    player_backend: 'mediaplayer',
-    sig: token.signature,
-    token: token.value,
+    player_backend: 'mediaplayer', sig: token.signature, token: token.value,
   });
   const url = `${TWITCH_USHER}/${encodeURIComponent(channel)}.m3u8?${params}`;
-
-  /* Try direct first, then CORS proxies */
   const tryFetch = async (u) => {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 10000);
-    try {
-      const r = await fetch(u, { signal: ctrl.signal });
-      clearTimeout(t);
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      return await r.text();
-    } catch (e) { clearTimeout(t); throw e; }
+    try { const r = await fetch(u, { signal: ctrl.signal }); clearTimeout(t); if (!r.ok) throw 0; return await r.text(); }
+    catch (e) { clearTimeout(t); throw e; }
   };
-
-  /* Try direct */
-  try {
-    const text = await tryFetch(url);
-    if (text && /#EXTM3U/i.test(text)) return text;
-  } catch {}
-
-  /* Try CORS proxies */
+  try { const t = await tryFetch(url); if (t?.includes('#EXTM3U')) return t; } catch {}
   const proxies = [
-    (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-    (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    (u) => `https://api.cors.lol/?url=${encodeURIComponent(u)}`,
+    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+    u => `https://api.cors.lol/?url=${encodeURIComponent(u)}`,
   ];
   for (const wrap of proxies) {
-    try {
-      const text = await tryFetch(wrap(url));
-      if (text && /#EXTM3U/i.test(text)) return text;
-    } catch {}
+    try { const t = await tryFetch(wrap(url)); if (t?.includes('#EXTM3U')) return t; } catch {}
   }
-  throw new Error('Could not fetch Twitch stream. CORS may be blocking.');
+  throw new Error('Could not fetch Twitch stream.');
 }
 
-function parseTwitchM3U8(m3u8Text) {
-  const lines = m3u8Text.split('\n');
-  const qualities = [];
+function parseTwitchM3U8(text) {
+  const lines = text.split('\n');
+  const q = [];
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (line.startsWith('#EXT-X-STREAM-INF:')) {
-      const nameMatch = line.match(/NAME="([^"]+)"/);
-      const resMatch = line.match(/RESOLUTION=(\d+x\d+)/);
-      const bwMatch = line.match(/BANDWIDTH=(\d+)/);
-      const nextLine = (lines[i + 1] || '').trim();
-      if (nextLine && !nextLine.startsWith('#')) {
-        qualities.push({
-          name: nameMatch?.[1] || resMatch?.[1] || 'Auto',
-          resolution: resMatch?.[1] || '',
-          bandwidth: bwMatch ? parseInt(bwMatch[1]) : 0,
-          url: nextLine,
-        });
-      }
+    if (lines[i].startsWith('#EXT-X-STREAM-INF:')) {
+      const l = lines[i];
+      const name = (l.match(/NAME="([^"]+)"/) || [])[1] || (l.match(/RESOLUTION=(\d+x\d+)/) || [])[1] || 'Auto';
+      const res = (l.match(/RESOLUTION=(\d+x\d+)/) || [])[1] || '';
+      const bw = l.match(/BANDWIDTH=(\d+)/);
+      const next = (lines[i + 1] || '').trim();
+      if (next && !next.startsWith('#')) q.push({ name, resolution: res, bandwidth: bw ? +bw[1] : 0, url: next });
     }
   }
-  return qualities.sort((a, b) => b.bandwidth - a.bandwidth);
+  return q.sort((a, b) => b.bandwidth - a.bandwidth);
 }
 
-async function openTwitchPlayer(channel) {
-  if (!channel) return;
-  channel = channel.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
-  if (!channel) return;
-
-  const status = $('tw-status');
-  const nameEl = $('tw-channel-name');
-  status.classList.remove('hidden');
-  nameEl.textContent = channel;
-
-  openPlayer(`Twitch — ${channel}`);
-  playerStage.innerHTML = `
-    <div id="tw-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.5);text-align:center;z-index:10">
-      <div class="spinner"></div><div>Connecting to ${esc(channel)}...</div>
-    </div>`;
-
-  try {
-    const m3u8Text = await getTwitchM3U8(channel);
-    const qualities = parseTwitchM3U8(m3u8Text);
-    if (!qualities.length) throw new Error('No quality variants found.');
-
-    /* Build quality selector */
-    qualitySelect.innerHTML = qualities.map((q, i) =>
-      `<option value="${i}">${q.name}${q.resolution ? ' (' + q.resolution + ')' : ''}</option>`
-    ).join('');
-    qualitySelect.onchange = () => {
-      const idx = parseInt(qualitySelect.value);
-      if (qualities[idx]) playTwitchStream(qualities[idx].url, channel);
-    };
-
-    /* Play highest quality */
-    $('tw-loading')?.remove();
-    playTwitchStream(qualities[0].url, channel);
-  } catch (e) {
-    const l = $('tw-loading');
-    if (l) l.innerHTML = `<div style="color:#ef4444;max-width:400px">Failed to connect: ${esc(e.message)}<br><span style="font-size:12px;opacity:0.5">Make sure the channel name is correct and the stream is live.</span></div>`;
-  }
-}
-
-function playTwitchStream(hlsUrl, channel) {
+/* ---------- Play stream via WebGL ---------- */
+function playTwitchStream(hlsUrl) {
   destroyPlayer();
-
-  /* Build absolute URL if relative */
-  if (hlsUrl && !hlsUrl.startsWith('http')) {
-    hlsUrl = `https://usher.ttvnw.net${hlsUrl}`;
-  }
-
   if (USE_CANVAS && window.THREE) {
     playerStage.innerHTML = `
-      <div id="ts-webgl-container" style="width:100%;height:100%;background:#000;position:relative"></div>
+      <div id="ts-webgl-container" style="width:100%;height:100%;background:#000"></div>
       <div id="ts-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.5);text-align:center;z-index:10">
-        <div class="spinner"></div><div>Loading stream via WebGL...</div>
-      </div>`;
-    const container = $('ts-webgl-container');
-    canvasPlayer = new WebGLVideoPlayer(container);
-    canvasPlayer.loadSource(hlsUrl)
-      .then(() => { $('ts-loading')?.remove(); canvasPlayer.play(); })
-      .catch((e) => { const l = $('ts-loading'); if (l) l.innerHTML = `<div style="color:#ef4444">Stream error: ${esc(e.message)}</div>`; });
+        <div class="spinner"></div><div>Loading stream via WebGL...</div></div>`;
+    canvasPlayer = new WebGLVideoPlayer($('ts-webgl-container'));
+    canvasPlayer.loadSource(hlsUrl).then(() => { $('ts-loading')?.remove(); canvasPlayer.play(); })
+      .catch(e => { const l = $('ts-loading'); if (l) l.innerHTML = `<div style="color:#ef4444">${esc(e.message)}</div>`; });
     return;
   }
-
   if (USE_CANVAS) {
     playerStage.innerHTML = `
       <video id="ts-video" playsinline muted style="display:none"></video>
       <canvas id="ts-canvas" style="width:100%;height:100%;background:#000;display:block"></canvas>
       <div id="ts-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.5);text-align:center;z-index:10">
-        <div class="spinner"></div><div>Loading stream...</div>
-      </div>`;
+        <div class="spinner"></div><div>Loading stream...</div></div>`;
     canvasPlayer = new CanvasHlsPlayer($('ts-video'), $('ts-canvas'));
-    canvasPlayer.loadSource(hlsUrl)
-      .then(() => { $('ts-loading')?.remove(); canvasPlayer.play(); })
-      .catch((e) => { const l = $('ts-loading'); if (l) l.innerHTML = `<div style="color:#ef4444">Stream error: ${esc(e.message)}</div>`; });
+    canvasPlayer.loadSource(hlsUrl).then(() => { $('ts-loading')?.remove(); canvasPlayer.play(); })
+      .catch(e => { const l = $('ts-loading'); if (l) l.innerHTML = `<div style="color:#ef4444">${esc(e.message)}</div>`; });
     return;
   }
-
-  /* Native fallback */
   playerStage.innerHTML = `<video id="ts-video" controls playsinline autoplay style="background:#000;width:100%;height:100%"></video>`;
-  const video = $('ts-video');
+  const v = $('ts-video');
   if (window.Hls && Hls.isSupported()) {
     hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: true });
-    hlsInstance.loadSource(hlsUrl);
-    hlsInstance.attachMedia(video);
-    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = hlsUrl;
-    video.play().catch(() => {});
+    hlsInstance.loadSource(hlsUrl); hlsInstance.attachMedia(v);
+    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => v.play().catch(() => {}));
+  } else { v.src = hlsUrl; v.play().catch(() => {}); }
+}
+
+async function openTwitchPlayer(channel) {
+  if (!channel) return;
+  channel = channel.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase();
+  openPlayer(`Twitch — ${channel}`);
+  playerStage.innerHTML = `<div id="ts-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.5);text-align:center;z-index:10"><div class="spinner"></div><div>Connecting to ${esc(channel)}...</div></div>`;
+  try {
+    const m3u8 = await getTwitchM3U8(channel);
+    const quals = parseTwitchM3U8(m3u8);
+    if (!quals.length) throw new Error('No quality variants found.');
+    qualitySelect.innerHTML = quals.map((q, i) => `<option value="${i}">${q.name}${q.resolution ? ' (' + q.resolution + ')' : ''}</option>`).join('');
+    qualitySelect.onchange = () => { const idx = +qualitySelect.value; if (quals[idx]) playTwitchStream(quals[idx].url); };
+    $('ts-loading')?.remove();
+    playTwitchStream(quals[0].url);
+  } catch (e) {
+    const l = $('ts-loading');
+    if (l) l.innerHTML = `<div style="color:#ef4444;max-width:400px">Failed: ${esc(e.message)}<br><span style="font-size:11px;opacity:0.5">Check the channel name and try again.</span></div>`;
   }
 }
 
+/* ---------- UI: format numbers ---------- */
+function twFormatViewers(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return String(n);
+}
+
+/* ---------- UI: render categories grid ---------- */
+function twRenderCategories(categories) {
+  const grid = $('tw-categories');
+  const empty = $('tw-empty');
+  if (!categories.length) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  grid.innerHTML = categories.map(c => `
+    <div class="tw-cat-card group cursor-pointer rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden transition duration-200 hover:-translate-y-1 hover:border-purple-500/30 hover:bg-white/[0.05]" data-slug="${esc(c.slug)}" data-name="${esc(c.name)}">
+      <div class="aspect-[3/4] bg-[#0d0d12] relative overflow-hidden">
+        <img loading="lazy" src="${esc(c.boxArt)}" alt="" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" onerror="this.parentElement.innerHTML='<div class=\\'flex items-center justify-center h-full text-3xl opacity-20\\'>🎮</div>'">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-3">
+          <div class="font-bold text-sm text-white truncate">${esc(c.name)}</div>
+          <div class="text-xs text-white/50 mt-0.5">${twFormatViewers(c.viewers)} viewers</div>
+        </div>
+      </div>
+    </div>`).join('');
+  grid.querySelectorAll('.tw-cat-card').forEach(card => {
+    card.addEventListener('click', () => twLoadCategory(card.dataset.name));
+  });
+}
+
+/* ---------- UI: render live channels grid ---------- */
+function twRenderStreams(streams, title) {
+  const grid = $('tw-live-channels');
+  const empty = $('tw-empty');
+  grid.classList.remove('hidden');
+  grid.classList.add('grid');
+  $('tw-categories').style.display = 'none';
+  $('tw-cat-search-wrap').style.display = 'none';
+  $('tw-back').classList.remove('hidden');
+  if (title) $('tw-back').textContent = `← Back to Categories`;
+
+  if (!streams.length) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+  grid.innerHTML = streams.map(s => `
+    <div class="tw-stream-card group cursor-pointer rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden transition duration-200 hover:-translate-y-1 hover:border-purple-500/30 hover:bg-white/[0.05]" data-login="${esc(s.login)}">
+      <div class="aspect-video bg-[#0d0d12] relative overflow-hidden">
+        <img loading="lazy" src="${esc(s.preview)}" alt="" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" onerror="this.style.display='none'">
+        <div class="absolute top-2 left-2 flex items-center gap-1.5 bg-red-600 px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wide">
+          <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>LIVE
+        </div>
+        <div class="absolute bottom-2 left-2 bg-black/70 px-2 py-0.5 rounded text-xs font-semibold text-white">${twFormatViewers(s.viewers)} viewers</div>
+      </div>
+      <div class="p-3">
+        <div class="flex items-start gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-xs font-bold text-purple-300 shrink-0">${esc((s.displayName || s.login || '?').charAt(0).toUpperCase())}</div>
+          <div class="min-w-0 flex-1">
+            <div class="font-bold text-sm text-white truncate">${esc(s.title || 'Untitled')}</div>
+            <div class="text-xs text-white/50 mt-0.5">${esc(s.displayName)} · ${esc(s.game || 'Just Chatting')}</div>
+          </div>
+        </div>
+        ${s.tags?.length ? `<div class="flex flex-wrap gap-1.5 mt-2">${s.tags.map(t => `<span class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/40">${esc(t)}</span>`).join('')}</div>` : ''}
+      </div>
+    </div>`).join('');
+  grid.querySelectorAll('.tw-stream-card').forEach(card => {
+    card.addEventListener('click', () => openTwitchPlayer(card.dataset.login));
+  });
+}
+
+/* ---------- Actions: load category ---------- */
+async function twLoadCategory(gameName) {
+  const grid = $('tw-categories');
+  const loading = $('tw-loading');
+  grid.innerHTML = '';
+  loading.classList.remove('hidden');
+  try {
+    const streams = await twFetchLiveStreams(24, gameName);
+    twAllStreams = streams;
+    loading.classList.add('hidden');
+    twRenderStreams(streams, gameName);
+  } catch (e) {
+    loading.classList.add('hidden');
+    $('tw-empty').classList.remove('hidden');
+  }
+}
+
+/* ---------- Actions: load all / back ---------- */
+async function twLoadBrowse() {
+  const loading = $('tw-loading');
+  const grid = $('tw-categories');
+  const liveGrid = $('tw-live-channels');
+  loading.classList.remove('hidden');
+  grid.innerHTML = '';
+  liveGrid.innerHTML = '';
+  liveGrid.classList.add('hidden');
+  liveGrid.classList.remove('grid');
+  $('tw-back').classList.add('hidden');
+  $('tw-cat-search-wrap').style.display = '';
+  $('tw-empty').classList.add('hidden');
+  try {
+    const [categories, streams] = await Promise.all([twFetchTopCategories(30), twFetchLiveStreams(12)]);
+    twAllCategories = categories;
+    twAllStreams = streams;
+    loading.classList.add('hidden');
+    twRenderCategories(categories);
+    /* Show live streams below categories as a secondary row */
+    if (streams.length) {
+      liveGrid.innerHTML = `<div class="col-span-full mb-2 mt-4 text-lg font-bold text-white">Live Now</div>` +
+        streams.map(s => `
+        <div class="tw-stream-card group cursor-pointer rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden transition duration-200 hover:-translate-y-1 hover:border-purple-500/30 hover:bg-white/[0.05]" data-login="${esc(s.login)}">
+          <div class="aspect-video bg-[#0d0d12] relative overflow-hidden">
+            <img loading="lazy" src="${esc(s.preview)}" alt="" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" onerror="this.style.display='none'">
+            <div class="absolute top-2 left-2 flex items-center gap-1.5 bg-red-600 px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wide">
+              <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>LIVE
+            </div>
+            <div class="absolute bottom-2 left-2 bg-black/70 px-2 py-0.5 rounded text-xs font-semibold text-white">${twFormatViewers(s.viewers)} viewers</div>
+          </div>
+          <div class="p-3">
+            <div class="flex items-start gap-2.5">
+              <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-xs font-bold text-purple-300 shrink-0">${esc((s.displayName || s.login || '?').charAt(0).toUpperCase())}</div>
+              <div class="min-w-0 flex-1">
+                <div class="font-bold text-sm text-white truncate">${esc(s.title || 'Untitled')}</div>
+                <div class="text-xs text-white/50 mt-0.5">${esc(s.displayName)} · ${esc(s.game || 'Just Chatting')}</div>
+              </div>
+            </div>
+            ${s.tags?.length ? `<div class="flex flex-wrap gap-1.5 mt-2">${s.tags.map(t => `<span class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/40">${esc(t)}</span>`).join('')}</div>` : ''}
+          </div>
+        </div>`).join('');
+      liveGrid.classList.remove('hidden');
+      liveGrid.classList.add('grid');
+      liveGrid.querySelectorAll('.tw-stream-card').forEach(card => {
+        card.addEventListener('click', () => openTwitchPlayer(card.dataset.login));
+      });
+    }
+  } catch (e) {
+    loading.classList.add('hidden');
+    $('tw-empty').classList.remove('hidden');
+  }
+}
+
+/* ---------- Event listeners ---------- */
 $('tw-go').addEventListener('click', () => {
   const ch = $('tw-search').value.trim().replace(/^(https?:\/\/)?(www\.)?twitch\.tv\//i, '');
   if (!ch) { alert('Enter a Twitch channel name.'); return; }
-  $('tw-search').value = ch;
   openTwitchPlayer(ch);
 });
 $('tw-search')?.addEventListener('keydown', e => { if (e.key === 'Enter') $('tw-go').click(); });
+
+/* Tab switching */
+document.querySelectorAll('.tw-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tw-tab').forEach(t => { t.classList.remove('text-purple-400', 'border-b-2', 'border-purple-400'); t.classList.add('text-white/40'); });
+    tab.classList.add('text-purple-400', 'border-b-2', 'border-purple-400');
+    tab.classList.remove('text-white/40');
+    twCurrentTab = tab.dataset.twtab;
+    if (twCurrentTab === 'live') {
+      $('tw-cat-search-wrap').style.display = 'none';
+      $('tw-categories').style.display = 'none';
+      $('tw-back').classList.add('hidden');
+      twLoadLiveChannels();
+    } else {
+      twLoadBrowse();
+    }
+  });
+});
+
+/* Back button */
+$('tw-back')?.addEventListener('click', () => {
+  $('tw-categories').style.display = '';
+  $('tw-cat-search-wrap').style.display = '';
+  $('tw-live-channels').classList.add('hidden');
+  $('tw-live-channels').classList.remove('grid');
+  $('tw-back').classList.add('hidden');
+  $('tw-empty').classList.add('hidden');
+  twRenderCategories(twAllCategories);
+});
+
+/* Category search filter */
+$('tw-cat-search')?.addEventListener('input', debounce(() => {
+  const q = $('tw-cat-search').value.trim().toLowerCase();
+  if (!q) { twRenderCategories(twAllCategories); return; }
+  const filtered = twAllCategories.filter(c => c.name.toLowerCase().includes(q));
+  twRenderCategories(filtered);
+}, 200));
+
+/* Live channels tab */
+async function twLoadLiveChannels() {
+  const grid = $('tw-live-channels');
+  const loading = $('tw-loading');
+  const empty = $('tw-empty');
+  grid.innerHTML = '';
+  loading.classList.remove('hidden');
+  empty.classList.add('hidden');
+  try {
+    const streams = await twFetchLiveStreams(24);
+    loading.classList.add('hidden');
+    if (!streams.length) { empty.classList.remove('hidden'); return; }
+    grid.classList.remove('hidden');
+    grid.classList.add('grid');
+    grid.innerHTML = streams.map(s => `
+      <div class="tw-stream-card group cursor-pointer rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden transition duration-200 hover:-translate-y-1 hover:border-purple-500/30 hover:bg-white/[0.05]" data-login="${esc(s.login)}">
+        <div class="aspect-video bg-[#0d0d12] relative overflow-hidden">
+          <img loading="lazy" src="${esc(s.preview)}" alt="" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" onerror="this.style.display='none'">
+          <div class="absolute top-2 left-2 flex items-center gap-1.5 bg-red-600 px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wide">
+            <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>LIVE
+          </div>
+          <div class="absolute bottom-2 left-2 bg-black/70 px-2 py-0.5 rounded text-xs font-semibold text-white">${twFormatViewers(s.viewers)} viewers</div>
+        </div>
+        <div class="p-3">
+          <div class="flex items-start gap-2.5">
+            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-xs font-bold text-purple-300 shrink-0">${esc((s.displayName || s.login || '?').charAt(0).toUpperCase())}</div>
+            <div class="min-w-0 flex-1">
+              <div class="font-bold text-sm text-white truncate">${esc(s.title || 'Untitled')}</div>
+              <div class="text-xs text-white/50 mt-0.5">${esc(s.displayName)} · ${esc(s.game || 'Just Chatting')}</div>
+            </div>
+          </div>
+          ${s.tags?.length ? `<div class="flex flex-wrap gap-1.5 mt-2">${s.tags.map(t => `<span class="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-white/40">${esc(t)}</span>`).join('')}</div>` : ''}
+        </div>
+      </div>`).join('');
+    grid.querySelectorAll('.tw-stream-card').forEach(card => {
+      card.addEventListener('click', () => openTwitchPlayer(card.dataset.login));
+    });
+  } catch (e) {
+    loading.classList.add('hidden');
+    empty.classList.remove('hidden');
+  }
+}
 
 /* ---------- Settings ---------- */
 function openSettings() {

@@ -541,25 +541,49 @@
     <!-- TWITCH SECTION -->
     <section id="twitch" class="section hidden">
       <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
-        <h2 class="text-3xl font-black tracking-tight mb-2">Watch <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Twitch</span> in your Tesla</h2>
-        <p class="text-white/40 mb-8">Enter a Twitch channel name. Streams via WebGL bypass — works while parked or charging.</p>
-        <div class="flex gap-3 mb-8">
-          <input type="text" id="tw-search" class="flex-1 px-4 py-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-purple-500 focus:outline-none" placeholder="Twitch channel name (e.g. shroud)">
+        <h2 class="text-3xl font-black tracking-tight mb-2">Browse <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Twitch</span></h2>
+        <p class="text-white/40 mb-6">Pick a category or search for a channel. Streams play via WebGL bypass.</p>
+
+        <!-- Channel search bar -->
+        <div class="flex gap-3 mb-6">
+          <input type="text" id="tw-search" class="flex-1 px-4 py-3 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-purple-500 focus:outline-none" placeholder="Search channel name (e.g. shroud)">
           <button class="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl text-sm hover:from-purple-500 hover:to-pink-500" id="tw-go">Watch Live</button>
         </div>
-        <div id="tw-status" class="hidden mb-6 rounded-xl border border-purple-500/20 bg-purple-500/10 p-4">
-          <div class="flex items-center gap-3">
-            <span class="h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
-            <span class="text-sm font-semibold text-purple-300" id="tw-channel-name"></span>
-            <span class="text-xs text-white/40">LIVE</span>
-          </div>
+
+        <!-- Tabs: Categories | Live Channels -->
+        <div class="flex gap-4 mb-6 border-b border-white/10 pb-3">
+          <button class="tw-tab text-sm font-bold text-purple-400 border-b-2 border-purple-400 pb-3 -mb-[13px]" data-twtab="categories">Categories</button>
+          <button class="tw-tab text-sm font-semibold text-white/40 hover:text-white/70 pb-3 -mb-[13px]" data-twtab="live">Live Channels</button>
         </div>
-        <div id="tw-channels" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-        <div id="tw-empty" class="text-center py-16 text-white/30">
+
+        <!-- Category search -->
+        <div id="tw-cat-search-wrap" class="mb-6">
+          <input type="text" id="tw-cat-search" class="w-full max-w-md px-4 py-2.5 bg-[#0d0d12] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:border-purple-500 focus:outline-none" placeholder="Search categories...">
+        </div>
+
+        <!-- Loading -->
+        <div id="tw-loading" class="text-center py-16">
+          <div class="spinner"></div>
+          <p class="text-white/40 text-sm mt-3">Loading Twitch...</p>
+        </div>
+
+        <!-- Categories grid -->
+        <div id="tw-categories" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"></div>
+
+        <!-- Live channels grid -->
+        <div id="tw-live-channels" class="hidden grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
+
+        <!-- Empty state -->
+        <div id="tw-empty" class="hidden text-center py-16 text-white/30">
           <svg class="w-16 h-16 mx-auto mb-4 opacity-20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
-          <p class="text-lg font-semibold mb-2">Enter a channel name above</p>
-          <p class="text-sm">Popular channels to try: shroud, ninja, pokimane, xQc, summ1t</p>
+          <p class="text-lg font-semibold mb-2">No results found</p>
+          <p class="text-sm">Try a different search or browse categories above.</p>
         </div>
+
+        <!-- Back button (when viewing a category's channels) -->
+        <button id="tw-back" class="hidden mb-6 px-4 py-2 text-sm font-semibold text-purple-400 border border-purple-500/30 rounded-lg hover:bg-purple-500/10 transition">
+          ← Back to Categories
+        </button>
       </div>
     </section>
 
