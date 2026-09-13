@@ -55,7 +55,132 @@ function isTesla() {
   }, 200);
 })();
 
-/* ---------- Canvas HLS Player (Tesla Bypass) ---------- */
+/* ---------- Three.js WebGL Player (Tesla Bypass) ---------- */
+/* Renders video via WebGL texture on a Three.js plane.
+ * Tesla blocks <video> elements while driving but allows WebGL.
+ * The video element is hidden; Three.js renders each frame as a
+ * texture on a fullscreen quad, bypassing the restriction entirely.
+ * Audio is routed through captureStream() → AudioContext. */
+class WebGLVideoPlayer {
+  constructor(container) {
+    this.container = container;
+    this.video = null;
+    this.scene = null;
+    this.camera = null;
+    this.renderer = null;
+    this.texture = null;
+    this.mesh = null;
+    this.hls = null;
+    this.playing = false;
+    this.frameId = null;
+    this.audioCtx = null;
+    this.audioSource = null;
+    this.mediaStream = null;
+    this._disposed = false;
+  }
+
+  async loadSource(url) {
+    /* hidden <video> — never rendered to DOM visually */
+    this.video = document.createElement('video');
+    this.video.crossOrigin = 'anonymous';
+    this.video.playsInline = true;
+    this.video.muted = false;
+    this.video.style.display = 'none';
+    this.container.appendChild(this.video);
+
+    /* Three.js setup */
+    const w = this.container.clientWidth || window.innerWidth;
+    const h = this.container.clientHeight || window.innerHeight;
+
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
+    this.renderer.setSize(w, h);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setClearColor(0x000000, 1);
+    this.container.appendChild(this.renderer.domElement);
+
+    /* video texture */
+    this.texture = new THREE.VideoTexture(this.video);
+    this.texture.minFilter = THREE.LinearFilter;
+    this.texture.magFilter = THREE.LinearFilter;
+    this.texture.format = THREE.RGBAFormat;
+    this.texture.colorSpace = THREE.SRGBColorSpace;
+
+    /* fullscreen quad */
+    const geo = new THREE.PlaneGeometry(2, 2);
+    const mat = new THREE.MeshBasicMaterial({ map: this.texture, depthWrite: false, depthTest: false });
+    this.mesh = new THREE.Mesh(geo, mat);
+    this.scene.add(this.mesh);
+
+    /* resize handler */
+    this._onResize = () => {
+      const w2 = this.container.clientWidth || window.innerWidth;
+      const h2 = this.container.clientHeight || window.innerHeight;
+      this.renderer.setSize(w2, h2);
+    };
+    window.addEventListener('resize', this._onResize);
+
+    /* load source via HLS.js or native */
+    if (window.Hls && Hls.isSupported()) {
+      this.hls = new Hls({ enableWorker: true, lowLatencyMode: true, capLevelToPlayerSize: true, startLevel: -1 });
+      this.hls.loadSource(url);
+      this.hls.attachMedia(this.video);
+      await new Promise((resolve, reject) => {
+        this.hls.once(Hls.Events.MANIFEST_PARSED, () => resolve());
+        this.hls.once(Hls.Events.ERROR, (_, data) => { if (data.fatal) reject(new Error(data.details)); });
+      });
+    } else if (this.video.canPlayType('application/vnd.apple.mpegurl')) {
+      this.video.src = url;
+      await new Promise((r, e) => { this.video.onloadedmetadata = r; this.video.onerror = e; });
+    } else {
+      throw new Error('HLS not supported');
+    }
+
+    /* start render loop */
+    this.playing = true;
+    this._renderLoop();
+
+    /* audio routing */
+    try {
+      this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      this.mediaStream = this.video.captureStream();
+      this.audioSource = this.audioCtx.createMediaStreamSource(this.mediaStream);
+      this.audioSource.connect(this.audioCtx.destination);
+    } catch {}
+
+    this.video.play().catch(() => {});
+  }
+
+  _renderLoop() {
+    if (this._disposed) return;
+    if (this.texture) this.texture.needsUpdate = true;
+    this.renderer.render(this.scene, this.camera);
+    this.frameId = requestAnimationFrame(() => this._renderLoop());
+  }
+
+  play() { this.playing = true; return this.video?.play(); }
+  pause() { this.playing = false; this.video?.pause(); }
+
+  destroy() {
+    this._disposed = true;
+    this.playing = false;
+    if (this.frameId) cancelAnimationFrame(this.frameId);
+    if (this.hls) { try { this.hls.destroy(); } catch {} this.hls = null; }
+    if (this.audioSource) { try { this.audioSource.disconnect(); } catch {} }
+    if (this.audioCtx) { try { this.audioCtx.close(); } catch {} }
+    if (this.mediaStream) { this.mediaStream.getTracks().forEach(t => t.stop()); }
+    if (this.renderer) { try { this.renderer.dispose(); } catch {} }
+    if (this.texture) { try { this.texture.dispose(); } catch {} }
+    if (this.mesh?.geometry) { try { this.mesh.geometry.dispose(); } catch {} }
+    if (this.mesh?.material) { try { this.mesh.material.dispose(); } catch {} }
+    window.removeEventListener('resize', this._onResize);
+    if (this.video) { this.video.src = ''; this.video.load(); this.video.remove(); }
+    if (this.renderer?.domElement) this.renderer.domElement.remove();
+  }
+}
+
+/* Legacy 2D canvas fallback (when Three.js not loaded) */
 class CanvasHlsPlayer {
   constructor(videoEl, canvasEl) {
     this.video = videoEl;
@@ -189,6 +314,20 @@ $('player-fullscreen').addEventListener('click', () => {
 
 async function playHls(url) {
   destroyPlayer();
+  /* Prefer WebGL (Three.js) renderer when available — bypasses Tesla driving restriction */
+  if (USE_CANVAS && window.THREE) {
+    playerStage.innerHTML = `
+      <div id="ts-webgl-container" style="width:100%;height:100%;background:#000;position:relative"></div>
+      <div id="ts-loading" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.5);text-align:center;z-index:10">
+        <div class="spinner"></div><div>Loading stream via WebGL...</div>
+      </div>`;
+    const container = $('ts-webgl-container');
+    canvasPlayer = new WebGLVideoPlayer(container);
+    try { await canvasPlayer.loadSource(url); $('ts-loading')?.remove(); canvasPlayer.play(); }
+    catch (e) { const l = $('ts-loading'); if (l) l.innerHTML = `<div style="color:#ef4444">Failed: ${esc(e.message)}</div>`; }
+    return;
+  }
+  /* Fallback: 2D canvas renderer */
   if (USE_CANVAS) {
     playerStage.innerHTML = `
       <video id="ts-video" playsinline muted style="display:none"></video>
@@ -559,7 +698,11 @@ renderYTList(YT_SHORTS);
 /* ---------- Settings ---------- */
 function openSettings() {
   $('set-canvas').checked = store.get('ts.forceCanvas', false);
-  $('tesla-status').textContent = isTesla() ? 'Tesla browser detected ✓' : 'Standard browser';
+  const tesla = isTesla();
+  const webgl = !!window.THREE;
+  $('tesla-status').textContent = tesla
+    ? (webgl ? 'Tesla browser detected ✓ — WebGL/Three.js active' : 'Tesla browser detected ✓ — 2D canvas fallback')
+    : (webgl ? 'Standard browser — WebGL/Three.js active' : 'Standard browser');
   $('settings-modal').classList.add('open');
 }
 $('settings-save').addEventListener('click', () => { store.set('ts.forceCanvas', $('set-canvas').checked); $('settings-modal').classList.remove('open'); location.reload(); });
