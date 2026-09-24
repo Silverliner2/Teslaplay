@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#2f7bff">
-<title>StreamHub – Free Streaming, TV &amp; Games</title>
+<title>TeslaPlay – Stream While Driving</title>
 <style>
 :root{--bg:#0d0f10;--card:#1a1d21;--line:#2a2e34;--fg:#f2f4f6;--mut:#8b929b;--acc:#2f7bff}
 *{box-sizing:border-box}[hidden]{display:none!important}
@@ -44,12 +44,11 @@ h2{margin:0 0 16px;font-size:22px}
 .ovbar button{background:#222;border-color:#333}
 #ovtitle{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ovbody{flex:1;position:relative}
-.ovbody iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.ovbody iframe,.ovbody video{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
 .chans{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
 .ch{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;height:130px;padding:10px;border-radius:14px;min-width:0}
 .ch img{max-height:54px;max-width:100%;object-fit:contain}.ch i{font-style:normal;font-size:34px}
 .ch span{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ovbody video{position:absolute;inset:0;width:100%;height:100%;background:#000}
 footer{margin-left:230px;text-align:center;color:var(--mut);font-size:13px;padding:24px}
 @media (max-width:760px){
  .shell{flex-direction:column}
@@ -62,22 +61,23 @@ footer{margin-left:230px;text-align:center;color:var(--mut);font-size:13px;paddi
 </style>
 </head>
 <body>
-<noscript><p style="padding:24px">StreamHub needs JavaScript turned on.</p></noscript>
 <div class="shell">
 <aside>
-  <div class="logo"><span class="mark">&#9654;</span>Stream<b>Hub</b></div>
+  <div class="logo"><span class="mark">&#9654;</span>Tesla<b>Play</b></div>
   <nav id="tabs">
-    <button class="on" data-t="apps"><i>🏠</i><span>Home</span></button>
+    <button class="on" data-t="home"><i>🏠</i><span>Home</span></button>
     <button data-t="tv"><i>📺</i><span>Live TV</span></button>
     <button data-t="youtube"><i>▶️</i><span>YouTube</span></button>
     <button data-t="twitch"><i>🟣</i><span>Twitch</span></button>
+    <button data-t="games"><i>🎮</i><span>Games</span></button>
   </nav>
-  <div class="foot">Free for everyone<br>No account needed</div>
+  <div class="foot">Works while driving<br>100% Free</div>
 </aside>
 <div class="content"><main>
-  <section id="apps" class="tab on">
-    <div class="hero"><div><small id="date"></small><h1 id="greet">Welcome back</h1><p>Your streams and live TV in one free place.</p></div><div id="clock">--:--</div></div>
-    <h2>Apps</h2><div class="grid" id="appGrid"></div>
+  <section id="home" class="tab on">
+    <div class="hero"><div><small id="date"></small><h1 id="greet">Welcome</h1><p>Stream videos, TV & games while driving.</p></div><div id="clock">--:--</div></div>
+    <h2>Quick Access</h2><div class="grid" id="quickGrid"></div>
+    <h2 style="margin-top:32px">Games</h2><div class="grid" id="gameGrid"></div>
   </section>
   <section id="tv" class="tab">
     <h2>Live TV</h2>
@@ -88,7 +88,7 @@ footer{margin-left:230px;text-align:center;color:var(--mut);font-size:13px;paddi
     </div>
     <div class="bar"><input id="csearch" placeholder="Search channels"></div>
     <div class="chips" id="groups"></div>
-    <div class="note" id="tvstatus">Choose a playlist, or add your own from your IPTV provider. Playlists are saved only in this browser.</div>
+    <div class="note" id="tvstatus">Loading channels...</div>
     <div class="grid chans" id="chans"></div>
   </section>
   <section id="youtube" class="tab">
@@ -102,21 +102,37 @@ footer{margin-left:230px;text-align:center;color:var(--mut);font-size:13px;paddi
   <section id="twitch" class="tab">
     <h2>Twitch</h2>
     <div class="bar"><input id="tw" placeholder="Channel name, or a twitch.tv/videos link"><button class="pri" id="twgo">Watch</button></div>
-    <p class="note">Enter a live channel (for example a streamer's name) or paste a video link.</p>
+    <p class="note">Enter a live channel or paste a video link.</p>
+  </section>
+  <section id="games" class="tab">
+    <h2>Browser Games</h2>
+    <div class="grid" id="gamesGrid"></div>
   </section>
 </main>
-<footer>StreamHub is a free link hub. Videos and channels belong to their owners and play from their own services.</footer>
+<footer>TeslaPlay – Works while driving</footer>
 </div></div>
 <div id="ov" hidden><div class="ovbar"><button id="back">&#8592; Back</button><span id="ovtitle"></span></div><div class="ovbody" id="ovbody"></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const APPS = [["▶️","YouTube","#youtube"],["🟣","Twitch","#twitch"],["📺","Live TV","#tv"]];
+
+const QUICK = [["▶️","YouTube","#youtube"],["🟣","Twitch","#twitch"],["📺","Live TV","#tv"],["🎮","Games","#games"]];
+const GAMES = [
+  ["🕹️","Poki","https://poki.com"],["🎯","CrazyGames","https://www.crazygames.com"],
+  ["🧩","Y8 Games","https://www.y8.com"],["♟️","Chess.com","https://www.chess.com/play"],
+  ["🔤","Wordle","https://www.nytimes.com/games/wordle"],["🚗","Miniclip","https://www.miniclip.com"],
+  ["🟢","GeForce NOW","https://play.geforcenow.com"],["🎮","Xbox Cloud","https://www.xbox.com/play"],
+  ["🏀","Basketball Stars","https://poki.com/en/g/basketball-stars"],["⚽","Soccer Skills","https://poki.com/en/g/soccer-skills"],
+  ["🏎️","Crazy Cars","https://poki.com/en/g/crazy-cars-2"],["🎱","8 Ball Pool","https://poki.com/en/g/8-ball-pool"],
+  ["🎲","Subway Surfers","https://poki.com/en/g/subway-surfers"],["🏹","Archery Master","https://poki.com/en/g/archery-master"]
+];
 const tile = ([i,n,u]) => u[0] == "#"
   ? `<a class="tile" href="${u}" data-go="${u.slice(1)}"><i>${i}</i>${n}</a>`
   : `<a class="tile" href="${u}" target="_blank" rel="noopener"><i>${i}</i>${n}</a>`;
-$("#appGrid").innerHTML = APPS.map(tile).join("");
+$("#quickGrid").innerHTML = QUICK.map(tile).join("");
+$("#gameGrid").innerHTML = GAMES.slice(0,8).map(tile).join("");
+$("#gamesGrid").innerHTML = GAMES.map(tile).join("");
 
 function showTab(t){
   document.querySelectorAll("#tabs button,.tab").forEach(e => e.classList.remove("on"));
@@ -125,15 +141,14 @@ function showTab(t){
 document.querySelectorAll("#tabs button").forEach(b => b.onclick = () => showTab(b.dataset.t));
 document.addEventListener("click", e => { const a = e.target.closest("[data-go]"); if (a) { e.preventDefault(); showTab(a.dataset.go); } });
 
-// ---- Full-screen player: every video is an iframe ----
 function openPlayer(title, iframeHtml){ $("#ovtitle").textContent = title; $("#ovbody").innerHTML = iframeHtml; $("#ov").hidden = false; }
 let hls;
 function closePlayer(){ if (hls) { hls.destroy(); hls = null; } $("#ovbody").innerHTML = ""; $("#ov").hidden = true; }
-// IPTV streams are raw video files, not web pages, so they use a video element (iframes can't play them)
+
 function openStream(title, url){
   $("#ovtitle").textContent = title; $("#ov").hidden = false;
   $("#ovbody").innerHTML = "<video controls autoplay playsinline></video>";
-  const v = $("#ovbody video"), fail = () => { $("#ovtitle").textContent = title + " — can't play this stream (offline, blocked or http-only)"; };
+  const v = $("#ovbody video"), fail = () => { $("#ovtitle").textContent = title + " — can't play this stream"; };
   v.onerror = fail;
   if (/\.m3u8/i.test(url) && window.Hls && Hls.isSupported()) {
     hls = new Hls(); hls.loadSource(url); hls.attachMedia(v);
@@ -144,10 +159,8 @@ $("#back").onclick = closePlayer;
 document.addEventListener("keydown", e => { if (e.key == "Escape") closePlayer(); });
 
 const ytEmbed = id => `<iframe width="560" height="315" src="https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-// Twitch requires "parent" = the domain this site is hosted on (filled in automatically)
 const twEmbed = q => `<iframe src="https://player.twitch.tv/?${q}&parent=${encodeURIComponent(location.hostname || "localhost")}&autoplay=true" title="Twitch player" frameborder="0" allowfullscreen="true" scrolling="no" height="384" width="640"></iframe>`;
 
-// ---- Twitch ----
 $("#twgo").onclick = () => {
   const v = $("#tw").value.trim(); if (!v) return;
   const vid = v.match(/videos\/(\d+)/) || v.match(/^v?(\d{6,})$/);
@@ -157,7 +170,6 @@ $("#twgo").onclick = () => {
 };
 $("#tw").onkeydown = e => { if (e.key == "Enter") $("#twgo").click(); };
 
-// ---- YouTube ----
 const CATS = [["Trending",""],["Music",10],["Gaming",20],["News",25],["Sports",17],["Movies",1],["Live","live"],["Shorts","shorts"]];
 $("#chips").innerHTML = CATS.map((c,i) => `<button data-c="${i}">${c[0]}</button>`).join("");
 const getKey = () => { try { return localStorage.getItem("ytkey") || ""; } catch (e) { return ""; } };
@@ -165,7 +177,7 @@ $("#ykey").onclick = () => { $("#kbox").hidden = !$("#kbox").hidden; $("#kin").v
 $("#ksave").onclick = () => { try { localStorage.setItem("ytkey", $("#kin").value.trim()); } catch (e) {} $("#kbox").hidden = true; loadCat(0); };
 async function yt(path, params){
   const k = getKey();
-  if (!k) { $("#ystatus").textContent = "Tap Key and paste a free YouTube API key to browse. You can still paste a video link above."; $("#kbox").hidden = false; return; }
+  if (!k) { $("#ystatus").textContent = "Tap Key and paste a free YouTube API key to browse."; $("#kbox").hidden = false; return; }
   $("#ystatus").textContent = "Loading...";
   try {
     const r = await (await fetch(`https://www.googleapis.com/youtube/v3/${path}?part=snippet&maxResults=24&key=${encodeURIComponent(k)}&` + new URLSearchParams(params))).json();
@@ -190,12 +202,18 @@ $("#ysearch").onclick = () => {
   if (m) openPlayer("YouTube", ytEmbed(m[1])); else yt("search", {type:"video", q});
 };
 $("#yq").onkeydown = e => { if (e.key == "Enter") $("#ysearch").click(); };
-if (getKey()) loadCat(0); else $("#ystatus").textContent = "Paste a video link above, or tap Key to add a free API key for trending, categories and Shorts.";
+if (getKey()) loadCat(0); else $("#ystatus").textContent = "Paste a video link above, or tap Key to add a free API key.";
 
-// ---- Live TV: playlists ----
-const BUILTIN = [["Free: News","https://iptv-org.github.io/iptv/categories/news.m3u"],["Free: Sports","https://iptv-org.github.io/iptv/categories/sports.m3u"],["Free: Movies","https://iptv-org.github.io/iptv/categories/movies.m3u"],["Free: Music","https://iptv-org.github.io/iptv/categories/music.m3u"],["Free: Kids","https://iptv-org.github.io/iptv/categories/kids.m3u"]];
+const BUILTIN = [
+  ["Movitv Pro","https://movitv.pro/"],
+  ["Free: Sports","https://iptv-org.github.io/iptv/categories/sports.m3u"],
+  ["Free: Movies","https://iptv-org.github.io/iptv/categories/movies.m3u"],
+  ["Free: News","https://iptv-org.github.io/iptv/categories/news.m3u"],
+  ["Free: Music","https://iptv-org.github.io/iptv/categories/music.m3u"],
+  ["Free: Kids","https://iptv-org.github.io/iptv/categories/kids.m3u"]
+];
 const pls = { get(){ try { return JSON.parse(localStorage.getItem("shpl") || "[]"); } catch (e) { return []; } },
-  set(v){ try { localStorage.setItem("shpl", JSON.stringify(v)); return true; } catch (e) { $("#tvstatus").textContent = "Couldn't save (storage full or blocked)."; return false; } } };
+  set(v){ try { localStorage.setItem("shpl", JSON.stringify(v)); return true; } catch (e) { $("#tvstatus").textContent = "Couldn't save."; return false; } } };
 let chans = [], grp = "All";
 function fillPl(sel){
   $("#pl").innerHTML = BUILTIN.map((b,i) => `<option value="b${i}">${esc(b[0])}</option>`).join("") + pls.get().map((p,i) => `<option value="u${i}">${esc(p.name)}</option>`).join("");
@@ -206,7 +224,7 @@ function parseM3U(t){
   for (const l of t.split(/\r?\n/)) {
     if (l.startsWith("#EXTINF")) { const g = l.match(/group-title="([^"]*)"/), lg = l.match(/tvg-logo="([^"]*)"/);
       meta = { name: l.slice(l.lastIndexOf(",") + 1).trim() || "Channel", group: (g && g[1]) || "Other", logo: lg ? lg[1] : "" }; }
-    else if (meta && /^https?:\/\//i.test(l.trim())) { out.push({ ...meta, url: l.trim() }); meta = null; }
+    else if (meta && l.trim().length > 0 && !l.trim().startsWith("#")) { out.push({ ...meta, url: l.trim() }); meta = null; }
   }
   return out;
 }
@@ -215,8 +233,8 @@ async function loadPl(){
   if (!item) return;
   $("#tvstatus").textContent = "Loading channels..."; $("#chans").innerHTML = "";
   try { const txt = item.text !== undefined ? item.text : await (await fetch(item.url)).text();
-    chans = parseM3U(txt); grp = "All"; renderCh(); if (!chans.length) $("#tvstatus").textContent = "No channels found in that playlist.";
-  } catch (e) { $("#tvstatus").textContent = "Couldn't load that playlist (bad link, or the provider blocks browser access)."; }
+    chans = parseM3U(txt); grp = "All"; renderCh(); if (!chans.length) $("#tvstatus").textContent = "No channels found.";
+  } catch (e) { $("#tvstatus").textContent = "Couldn't load that playlist."; }
 }
 function renderCh(){
   $("#groups").innerHTML = ["All", ...new Set(chans.map(c => c.group))].slice(0, 40).map(g => `<button class="${g == grp ? "pri" : ""}" data-g="${esc(g)}">${esc(g)}</button>`).join("");
@@ -230,13 +248,12 @@ $("#csearch").oninput = renderCh;
 $("#pl").onchange = loadPl;
 $("#addpl").onclick = () => { $("#pbox").hidden = !$("#pbox").hidden; };
 function addPl(p){ const all = pls.get(); all.push(p); if (pls.set(all)) { fillPl("u" + (all.length - 1)); $("#pbox").hidden = true; $("#pname").value = $("#purl").value = ""; loadPl(); } }
-$("#psave").onclick = () => { const url = $("#purl").value.trim(); if (!/^https?:\/\//i.test(url)) { $("#tvstatus").textContent = "Enter a playlist link starting with http:// or https://"; return; } addPl({ name: $("#pname").value.trim() || "My playlist", url }); };
+$("#psave").onclick = () => { const url = $("#purl").value.trim(); if (!/^https?:\/\//i.test(url)) { $("#tvstatus").textContent = "Enter a valid URL."; return; } addPl({ name: $("#pname").value.trim() || "My playlist", url }); };
 $("#pup").onclick = () => $("#pfile").click();
 $("#pfile").onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => addPl({ name: $("#pname").value.trim() || f.name.replace(/\.\w+$/, ""), text: String(r.result) }); r.readAsText(f); e.target.value = ""; };
 $("#delpl").onclick = () => { const v = $("#pl").value; if (v[0] != "u") { $("#tvstatus").textContent = "Built-in playlists can't be removed."; return; } const all = pls.get(); all.splice(+v.slice(1), 1); pls.set(all); fillPl(); loadPl(); };
-fillPl(); if (pls.get().length) { $("#pl").value = "u0"; loadPl(); }
+fillPl(); loadPl();
 
-// ---- Home greeting + clock ----
 (function tick(){
   const d = new Date(), h = d.getHours();
   $("#clock").textContent = d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
