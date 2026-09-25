@@ -1,0 +1,310 @@
+#EXTM3U
+
+#EXTINF:-1 iso-id="US" type-id="#006" tvg-logo="https://i.postimg.cc/Rh0c10DZ/MLB-Playlist.png" group-title="Live Events",MLB Playlist âš¾ï¸
+XmoUNb2=|CZEtpIbapOqa&IqfY+^2Scyu6eVRCb2RdQ@SH~
+
+#EXTINF:-1 iso-id="US" type-id="#002" tvg-logo="https://i.postimg.cc/NF0180z5/NCAA-Playlist.png" group-title="Live Events",NCAA Playlist ðŸˆ
+XmoUNb2=|CZEtpIbapOqa&IqgV_{(~ba-?iaA9(DWmR%)Jva
+
+#EXTINF:-1 iso-id="US" type-id="#017" tvg-logo="https://i.postimg.cc/Dw546h11/NHL-Playlist.png" group-title="Live Events",NHL Playlist ðŸ’ 
+XmoUNb2=|CZEtpIbapOqa&IqgXlyQYcyu6eVRCb2RdQ@SH~
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/28GMXtG2/Basket-TV.png" group-title="Sports",Basket TV
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJv1;hAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/28GMXtG2/Basket-TV.png" group-title="Sports",Basket TV (2)
+XmoUNb2=|CW^Z_Oa%FC0E@xyfY-x67Ep&E2V`x2NXf1AHVJ&oaAaG%Fb7fU>Y&|j
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/28GMXtG2/Basket-TV.png" group-title="Sports",Basket TV (3)
+XmoUNb2=|Cb98cLVQq78Z*p{VIXNzKbuVmbc4aMeb}vpsK_xOUR90VKb#owaVRCb2RdQ@SF#
+
+#EXTINF:-1 iso-id="QA" tvg-logo="https://i.postimg.cc/9XBC6YzD/Bein-Sports-1.png" group-title="Sports",Bein Sports 1
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvlKTaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="QA" tvg-logo="https://i.postimg.cc/HL5CBQFK/Bein-Sports-2.png" group-title="Sports",Bein Sports 2
+XmoUNb2=|CWNc}6WiE4gFK}#ib1!pra%Ev{EjcnSaA<H}Us7deIwELvbZ~PzFE3<lX?A5Ub9gTzaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="QA" tvg-logo="https://i.postimg.cc/CMJpPM6s/Bein-Sports-3.png" group-title="Sports",Bein Sports 3
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvlQVaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/YjKppdKM/Bein-Sports-1-ENG.png" group-title="Sports",Bein Sports 1 ENG 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvK2QaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/zfB32PqB/Bein-Sports-2-ENG.png" group-title="Sports",Bein Sports 2 ENG 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvlHSaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/25639XC5/Bein-Sports-3-ENG.png" group-title="Sports",Bein Sports 3 ENG 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJv25TaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="MX" tvg-logo="https://i.postimg.cc/LsXhQ0mn/Bein-Sports.png" group-title="Sports",Bein Sports Ã‘
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu^2lAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/wBv34b93/Bein-Sports-US.png" group-title="Sports",Bein Sports USA
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJv1^kAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/B6mp9zFq/TNT-Sports-1.png" group-title="Sports",TNT Sports 1
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@*NaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/DZx6kNGv/TNT-Sports-2.png" group-title="Sports",TNT Sports 2
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@;OaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/1tvBhdFR/TNT-Sports-3.png" group-title="Sports",TNT Sports 3
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@>PaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/85Z4QYvz/TNT-Sports-4.png" group-title="Sports",TNT Sports 4
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@^QaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/gcshs5Fw/CBS-Sports.png" group-title="Sports",CBS Sports 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@&kAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/gcshs5Fw/CBS-Sports.png" group-title="Sports",CBS Sports (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFJoeJEpu>ha&&VoZe?_LZ*prOaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/3JvqmKp3/Cloud-Sports-Action.png" group-title="Sports",Cloud Sports Action 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu^2TaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/3JvqmKp3/Cloud-Sports-Action.png" group-title="Sports",Cloud Sports Action (2)
+XmoUNb2=|CaBN|DV{&O@Xk;#PbT4&qWMOn=FJ@(QV`wgLXmCGhWIZt^Wo=?*WIZt;aA9(DWmR%)Ju(
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/CLq2kFDL/Cloud-Sports-Cricket.png" group-title="Sports",Cloud Sports Cricket 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvKEUaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/CLq2kFDL/Cloud-Sports-Cricket.png" group-title="Sports",Cloud Sports Cricket (2)
+XmoUNb2=|CaBN|DV{&O@Xk;#PbT4&qWMOn=FJ@(QV`wgLXmCGhWIZw_Wo=?*WIZt;aA9(DWmR%)Ju(
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/bNt5kzbY/Cloud-Sports-Football.png" group-title="Sports",Cloud Sports Football 
+XmoUNb2=|CWNc}6WiE4gFK}#ib1!pra%Ev{Ei*MPaA<H}Us7deIwELvbZ~PzFE3<lX?A5Ub9gTzaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/vHVKfQ9T/Cloud-Sports-Golf.png" group-title="Sports",Cloud Sports Golf 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvT5QaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/dtyfrqdh/Cloud-Sports-Main.png" group-title="Sports",Cloud Sports Main
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu^5UaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="GB-ENG" tvg-logo="https://i.postimg.cc/dtyfrqdh/Cloud-Sports-Main.png" group-title="Sports",Cloud Sports Main (2)
+XmoUNb2=|CaBN|DV{&O@Xk;#PbT4&qWMOn=FJ@(QV`wgLXmCGhWIZt^Wo=?*WIZt;aA9(DWmR%)Ju(
+
+#EXTINF:-1 iso-id="AR" tvg-logo="https://i.imgur.com/wXmzRW9.png" group-title="Sports",DirecTV Sports 
+XmoUNb2=|CcXMQAaBp&SWpgfWWppn;c0FWsaBp&Sb8u{Rb0BbGa&u)>a%?>^
+
+#EXTINF:-1 iso-id="AR" tvg-logo="https://i.imgur.com/wXmzRW9.png" group-title="Sports",DirecTV Sports (2)
+XmoUNb2=|Cb98cLVQqM5WG-WGZ7*zTc4aXxaA<Hpb98cLVQoERb8v5RbaNnZVRCb2RdQ@SF#
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/nLKrzjp6/ESPN.png" group-title="Sports",ESPN 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJv1~RaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/nLKrzjp6/ESPN.png" group-title="Sports",ESPN (2)
+XmoUNb2=|CW^Z_Oa%FC0E@xyfY-x67Ep&E2V`x2NXf0)PaBd)QVRCb2RdQ@SG5
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/ccV4cJ0g/ESPN-2.png" group-title="Sports",ESPN 2
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJv22SaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/ccV4cJ0g/ESPN-2.png" group-title="Sports",ESPN 2 (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFJ*IZZZaTnVRCb2RdQ@SF#
+
+#EXTINF:-1 iso-id="MX" tvg-logo="https://i.postimg.cc/zfY38SYr/ESPN-Deportes.png" group-title="Sports",ESPN Deportes 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu^2oAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="MX" tvg-logo="https://i.postimg.cc/zfY38SYr/ESPN-Deportes.png" group-title="Sports",ESPN MX 1
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFJ*IZZY^YGaBp&SWpf~KVRCb2RdQ@SF#
+
+#EXTINF:-1 iso-id="AR" tvg-logo="https://i.postimg.cc/Dwmw5HLs/ESPN-Sur-1.png" group-title="Sports",ESPN SUR
+XmoUNb2=|CWNdSEa%Ev{b1rjqFJobIbT4ysa%Ev{Eip7XE^ugYUtdyXW;!BhbaZfYIxjC|Y;$ySWnpb|E^~A*B5+}Hb7fU>Y&|j
+
+#EXTINF:-1 iso-id="AR" tvg-logo="https://i.postimg.cc/Dwmw5HLs/ESPN-Sur-1.png" group-title="Sports",ESPN SUR (2)
+XmoUNb2=|CcXMQAaBp&SWpgfWWppn;c0FZtaBd)QVRCb2RdQ@SG5
+
+#EXTINF:-1 iso-id="AR" tvg-logo="https://i.postimg.cc/1343M2wF/ESPN-Sur-2.png" group-title="Sports",ESPN SUR 2
+XmoUNb2=|CWNdSEa%Ev{b1rjqFJobIbT4ysa%Ev{EipAPE^ugYUtdyXW;!BhbaZfYIxjC|Y;$ySWnpb|E^~A*B5+}Hb7fU>Y&|j
+
+#EXTINF:-1 iso-id="AR" tvg-logo="https://i.postimg.cc/1343M2wF/ESPN-Sur-2.png" group-title="Sports",ESPN SUR 2 (2)
+XmoUNb2=|CcXMQAaBp&SWpgfWWppn;c0FZtaBeanaA9(DWmR%)Ju(
+
+#EXTINF:-1 iso-id="AR" tvg-logo="https://i.postimg.cc/2S3STMhh/ESPN-Sur-3.png" group-title="Sports",ESPN SUR 3
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvTWxAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="AR" tvg-logo="https://i.postimg.cc/2S3STMhh/ESPN-Sur-3.png" group-title="Sports",ESPN SUR 3 (3)
+XmoUNb2=|CcXMQAaBp&SWpgfWWppn;c0FZtaBedoaA9(DWmR%)Ju(
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/HLqhy1WV/FS1.png" group-title="Sports",FS1 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu^8VaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/HLqhy1WV/FS1.png" group-title="Sports",FS1 (2)
+XmoUNb2=|CW^Z_Oa%FC0E@xyfY-x67Ep&E2V`x2NXf0-Mcr9~qZ*p{VEioW)VRCb2RdQ@SG5
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/Lscb1F4J/FS2.png" group-title="Sports",FS2
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvTKtAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/Lscb1F4J/FS2.png" group-title="Sports",FS2 (2)
+XmoUNb2=|CW^Z_Oa%FC0E@xyfY-x67Ep&E2V`x2NXf0-Mcr9~qZ*p{VEixc*VRCb2RdQ@SG5
+
+#EXTINF:-1 iso-id="MX" tvg-logo="https://i.postimg.cc/jqJp5M34/FOX-Deportes.png" group-title="Sports",Fox Deportes 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvKBmAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="MX" tvg-logo="https://i.postimg.cc/jqJp5M34/FOX-Deportes.png" group-title="Sports",Fox Deportes (2)
+XmoUNb2=|CW^Z_Oa%FC0E@xyfY-x67Ep&E2V`x2NXf0-Mcr9dQaBp&SWpf~KVRCb2RdQ@SG5
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/hFfZdh4h/Golf-Channel.png" group-title="Sports",Golf Channel
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@*lAaG%Fb7fU>Y&|g 
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/hFfZdh4h/Golf-Channel.png" group-title="Sports",Golf Channel (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFK2ITW-ViAVQy|^Y#?x9a&u)>a%?>@
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/hFfZdh4h/Golf-Channel.png" group-title="Sports",Golf Channel (3)
+XmoUNb2=|Cb98cLVQq78Z*p{VIXNzKbuVmbc4aMeb}vUyOhzR#FjQ7wUv+aJaA9(DWmR%)Juv 
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/Q7ZbWJ89/MLB-Network.png" group-title="Sports",MLB Network 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu^8uAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/Q7ZbWJ89/MLB-Network.png" group-title="Sports",MLB Network (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFKujMEpBCWcW-iQAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/Q7ZbWJ89/MLB-Network.png" group-title="Sports",MLB Network (3)
+XmoUNb2=|Cb98cLVQq78Z*p{VIXNzKbuVmbc4aMeb}vm#LM1XVPGxj=Z*ps2Uv+aJaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="PT" tvg-logo="https://i.ibb.co/6JvGyZxJ/Sport-TV-1.png" group-title="Sports",Sport TV 1
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJv2EWaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="PT" tvg-logo="https://i.ibb.co/6JvGyZxJ/Sport-TV-1.png" group-title="Sports",Sport TV 1 (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFLQ8ja&#?pb}=AuVRCb2RdQ@SF#
+
+#EXTINF:-1 iso-id="PT" tvg-logo="https://i.ibb.co/Y7CKwxH6/Sport-TV-2.png" group-title="Sports",Sport TV 2
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvTHUaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="PT" tvg-logo="https://i.ibb.co/Y7CKwxH6/Sport-TV-2.png" group-title="Sports",Sport TV 2 (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFLQ8ja&#?pb}}GvVRCb2RdQ@SF#
+
+#EXTINF:-1 iso-id="PT" tvg-logo="https://i.ibb.co/jkS51Dbg/Sport-TV-3.png" group-title="Sports",Sport TV 3
+XmoUNb2=|CWNc_;E^uovaBN|DWpXcbbaG{3Z7no4G%j#xa9>|iWo9}eXmoUNb2=|CWNc_;E^uovB5+}Hb7fU>Y&|g
+
+#EXTINF:-1 iso-id="PT" tvg-logo="https://i.ibb.co/jkS51Dbg/Sport-TV-3.png" group-title="Sports",Sport TV 3 (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFLQ8ja&#?pb~7MwVRCb2RdQ@SF#
+
+#EXTINF:-1 iso-id="PT" tvg-logo="https://i.ibb.co/rGwR6FBN/Sport-TV-4.png" group-title="Sports",Sport TV 4
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu)~sAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="PT" tvg-logo="https://i.ibb.co/rGwR6FBN/Sport-TV-4.png" group-title="Sports",Sport TV 4 (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFLQ8ja&#?pb~GSxVRCb2RdQ@SF#
+
+#EXTINF:-1 iso-id="PT" tvg-logo="https://i.ibb.co/PXpJCx0/Sport-TV-5.png" group-title="Sports",Sport TV 5
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu*2kAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="PT" tvg-logo="https://i.ibb.co/PXpJCx0/Sport-TV-5.png" group-title="Sports",Sport TV 5 (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFLQ8ja&#?pb~PYyVRCb2RdQ@SF#
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/TPLs13xw/Tennis-Channel.png" group-title="Sports",Tennis Channel
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJv1;NaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/TPLs13xw/Tennis-Channel.png" group-title="Sports",Tennis Channel (2)
+XmoUNb2=|CW^Z_Oa%FC0E@xyfY-x67Ep&E2V`x2NXf1SQZf<FFEn{e5Zf<34AaG%Fb7fU>Y&|j
+
+#EXTINF:-1 iso-id="CA" tvg-logo="https://i.ibb.co/Mmn87k5/TSN-1.png" group-title="Sports",TSN
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJuxvcAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="CA" tvg-logo="https://i.ibb.co/Mmn87k5/TSN-1.png" group-title="Sports",TSN (2)
+XmoUNb2=|Cb98cLVQq78Z*p{VIXNzKbuVmbc4aMeb}v*@P9-uhF<)O}VIXi}a&u)>a%?>@
+
+#EXTINF:-1 iso-id="CA" tvg-logo="https://i.ibb.co/B2bKNGNF/TSN-2.png" group-title="Sports",TSN 2 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJuxvdAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="CA" tvg-logo="https://i.ibb.co/B2bKNGNF/TSN-2.png" group-title="Sports",TSN 2 (2)
+XmoUNb2=|CV`Oe@X?A6Fb}ngiFJW+LFLp66V`yP+Ze?t9FK}#Od1Z1hKW<@dWj$0=P9-uhGA3hhWMw^LVJ3BRWpX`ZWNvI}c4c&SCU9(FZarplWo2+-a&u)>a%?>^
+
+#EXTINF:-1 iso-id="CA" tvg-logo="https://i.ibb.co/8Lk3mP13/TSN-3.png" group-title="Sports",TSN 3
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJuxveAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="CA" tvg-logo="https://i.ibb.co/8Lk3mP13/TSN-3.png" group-title="Sports",TSN 3 (2)
+XmoUNb2=|Cb98cLVQq78Z*p{VIXNzKbuVmbc4aMeb}v*@P9-uhGhbh0VIXi}a&u)>a%?>@
+
+#EXTINF:-1 iso-id="CA" tvg-logo="https://i.ibb.co/8Zwh04B/TSN-4.png" group-title="Sports",TSN 4
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJuxvfAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="CA" tvg-logo="https://i.ibb.co/8Zwh04B/TSN-4.png" group-title="Sports",TSN 4 (2)
+XmoUNb2=|Cb98cLVQq78Z*p{VIXNzKbuVmbc4aMeb}v*@P9-uhG+$q1VIXi}a&u)>a%?>@
+
+#EXTINF:-1 iso-id="CA" tvg-logo="https://i.ibb.co/6RSs7N8V/TSN-5.png" group-title="Sports",TSN 5
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJuxvgAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="CA" tvg-logo="https://i.ibb.co/6RSs7N8V/TSN-5.png" group-title="Sports",TSN 5 (2)
+XmoUNb2=|CV`Oe@X?A6Fb}ngiFJW+LFLp66V`yP+Ze?t9FK}#Od1Z1hKW<@dWj$0=P9-uhH6~+kWMw^LVJ3BRWpX`ZWNvI}c4c&SCU9(FZarplWo006VRCb2RdQ@SG5
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/j5BBcf2g/TUDN.png" group-title="Sports",TUDN USA
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvKHVaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/j5BBcf2g/TUDN.png" group-title="Sports",TUDN USA (2)
+XmoUNb2=|CcXMQAaBp&SWpgfWWppn;c0F`;WNvkHAaG%Fb7fU>Y&|j
+
+#EXTINF:-1 iso-id="MX" tvg-logo="https://i.postimg.cc/j5BBcf2g/TUDN.png" group-title="Sports",TUDN MX
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvlQqAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="MX" tvg-logo="https://i.postimg.cc/j5BBcf2g/TUDN.png" group-title="Sports",TUDN MX (2)
+XmoUNb2=|CW^Z_Oa%FC0E@xyfY-x67Ep&E2V`x2NXf1SgWNsjEVRCb2RdQ@SG5
+
+#EXTINF:-1 iso-id="CO" tvg-logo="https://i.ibb.co/ycBh1FMw/WIN-Sports.png" group-title="Sports",WIN Sports +
+XmoUNb2=|CcXMQAaBp&SWpgfWWppn;c0G4#ZgX&Na&&WTVRImGVRCb2RdQ@SF#
+
+#EXTINF:-1 iso-id="CO" tvg-logo="https://i.ibb.co/ycBh1FMw/WIN-Sports.png" group-title="Sports",WIN Sports + (2)
+XmoUNb2=|CcXMQAaBp&SWpgfWWppn;c0G4#ZgX&Na&&WTVRI&La6K|0aA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/mrxzsrn9/A-E.png" group-title="Entertainment",A&E 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@&eAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/mrxzsrn9/A-E.png" group-title="Entertainment",A&E (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFJWaMaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/Mx4vrrDZ/AMC.png" group-title="Entertainment",AMC 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@&fAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/Mx4vrrDZ/AMC.png" group-title="Entertainment",AMC (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFJWzCAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/bYRztfXB/CBS.png" group-title="Entertainment",CBS 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJvA~QaA9(DWmR%)Juv
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.postimg.cc/bYRztfXB/CBS.png" group-title="Entertainment",CBS (2)
+XmoUNb2=|CW^Z_Oa%FC0E@xyfY-x67Ep&E2V`x2NXf0!6b0BbGa&u)>a%?>^
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/hF7ydw3J/BET.png" group-title="Entertainment",BET 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@&iAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/hF7ydw3J/BET.png" group-title="Entertainment",BET (2)
+XmoUNb2=|Cb98cLVQq78Z*p{VIXNzKbuVmbc4aMeb}vFjR9|0pb0BbGa&u)>a%?>@
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/jvprvM6m/Bravo.png" group-title="Entertainment",Bravo
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@&jAaG%Fb7fU>Y&|g 
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/jvprvM6m/Bravo.png" group-title="Entertainment",Bravo (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFJf|Gc5fhXVRCb2RdQ@SF# 
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/BHzDrX61/HBO.png" group-title="Entertainment",HBO
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@;fAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/BHzDrX61/HBO.png" group-title="Entertainment",HBO (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFKA+KAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/svsTNmGN/Paramount-Network.png" group-title="Entertainment",Paramount Network 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@>jAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/svsTNmGN/Paramount-Network.png" group-title="Entertainment",Paramount Network (2)
+XmoUNb2=|CV`*+>c4=fTb966haCCMraBN|DWpY1hWIZ)DGBP+cIUsOha&u)>a%?>^
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/zy20KVd/TBS.png" group-title="Entertainment",TBS
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@>lAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/zy20KVd/TBS.png" group-title="Entertainment",TBS
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFLYvaAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/FLdVMx7G/TNT.png" group-title="Entertainment",TNT 
+XmoUNb2=|CWNc_;E^uovcVTp6XfAMQa6f5eJu@>nAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/FLdVMx7G/TNT.png" group-title="Entertainment",TNT (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFLZ8nAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/G3Cq8mXC/USA-NETWORK.png" group-title="Entertainment",USA Network 
+XmoUNb2=|CWNc}6WiE4gFLz;dV`wgLXmCGiWIZ!9Gaztba&u)>a%?>@
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/G3Cq8mXC/USA-NETWORK.png" group-title="Entertainment",USA Network (2)
+XmoUNb2=|CW^Z_Sc`kEwFKlUcWi51eFLiTaEpBCWcW-iQAaG%Fb7fU>Y&|g
+
+#EXTINF:-1 iso-id="US" tvg-logo="https://i.ibb.co/G3Cq8mXC/USA-NETWORK.png" group-title="Entertainment",USA Network (3)
+XmoUNb2=|Cb98cLVQq78Z*p{VIXNzKbuVmbc4aMeb}v;^K_xOUPGxj=Z*ps2Uv+aJaA9(DWmR%)Juv

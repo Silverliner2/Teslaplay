@@ -1,0 +1,180 @@
+TeslaPlay / StreamHub — Complete Build Blueprint
+Send this entire document to a website-building AI model. It contains all requirements, exact URLs, colors, and code logic needed. The AI should output ONE single index.html file that works immediately.
+
+1. What We Are Building
+A single-file, 100% free streaming website that works in the Tesla Chromium browser while the car is moving. Features:
+
+Live TV (IPTV M3U playlists — default playlist from movitv.pro)
+YouTube (search, trending, categories, Shorts, suggestions)
+Twitch (channel search with live suggestions, watch live/VOD)
+Web Radio (background audio streams)
+Browser Games (grid of links + one built-in Canvas game)
+No accounts, no paywalls, no npm, no backend. Static. Free hosting via GitHub Pages.
+2. Architecture Rules (MANDATORY)
+Output is a single index.html file. Put ALL CSS inside a <style> block and ALL JavaScript inside one <script> block. No external CSS/JS files.
+No backend, no server, no database. 100% client-side.
+All user state saved in window.localStorage. Nothing transmitted anywhere.
+Must work when opened directly from file:// and when hosted on GitHub Pages.
+Only external dependency allowed is the CDN script: https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js
+Must run with no console errors on first load. Nothing may throw.
+3. Tesla Browser Environment — THE KEY FACTS
+The Tesla browser is Chromium-based. These behaviors are what make the site work:
+
+Feature	Behavior on Tesla
+Native <video> element playing .m3u8 (via Hls.js) or video files	PLAYS while driving. Tesla allows native HTML5 media.
+YouTube/Twitch <iframe> embeds	Usually blocked while driving (shows "restricted" screen).
+<audio> element	Plays while driving. Used for radio.
+Fullscreen overlay div / <canvas>	Renders fine.
+Large touch targets	Needed (Tesla has no mouse, only touchscreen scroll wheel + tap).
+The bypass technique to implement (IMPORTANT)
+For all live stream playback use a fullscreen overlay containing a native <video> element (NOT an iframe). Optionally add a canvas fallback:
+
+Create a hidden <video> element (display:none) that loads the stream with Hls.js.
+Create a visible <canvas> element.
+On every requestAnimationFrame, draw ctx.drawImage(videoEl, 0, 0, canvasW, canvasH).
+If the vehicle blocks the raw video element, the canvas still shows the frames, which tricks the element-scanner.
+Provide a toggle button "Canvas / Native" so the user can switch modes.
+Always destroy the Hls.js instance and cancel the animation loop when the player closes.
+4. Design System (copy exactly)
+:root {
+  --bg: #0d0f10;
+  --card: #1a1d21;
+  --line: #2a2e34;
+  --fg: #f2f4f6;
+  --mut: #8b929b;
+  --acc: #2f7bff;
+}
+Dark background #0d0f10 everywhere. No light mode.
+Font: system-ui, -apple-system, Segoe UI, Roboto, sans-serif.
+Buttons: min-height:52px, border-radius:12px, border:1px solid var(--line), background var(--card). Primary/active buttons background var(--acc), white text, class .pri.
+Inputs: flex:1, min-width:180px, min-height:52px, same dark styling.
+Tiles (app/game squares): height 150px, border-radius:16px, gradient background linear-gradient(160deg,#1e232a,#16191d), hover = border var(--acc) + glow box-shadow:0 0 24px rgba(47,123,255,.3).
+Grid for tiles: display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px.
+Category chips: border-radius:999px, small padding.
+Layout
+LEFT sidebar (fixed width ~230px) with logo + vertical nav buttons: Home 🏠, Live TV 📺, YouTube ▶️, Twitch 🟣, Radio 📻, Arcade 🎮.
+Active nav button: background rgba(47,123,255,.14), white text, left border accent.
+Right side = scrollable content area.
+Hero banner on Home: dark gradient, greeting, date, big clock.
+On screens ≤760px the sidebar becomes a fixed bottom tab bar.
+All buttons large enough for touch.
+user-scalable=no in the viewport meta.
+5. Page Sections (build all of these)
+5.1 HOME
+Hero: <h1 id="greet"> (Good morning/afternoon/evening by local hour), date line, big clock (HH:MM), updated every 15s.
+"Quick Access" grid — tiles linking to internal tabs: YouTube, Twitch, Live TV, Arcade.
+"Games" grid — tiles linking out (new tab) to: Poki https://poki.com, CrazyGames https://www.crazygames.com, Y8 https://www.y8.com, Chess.com https://www.chess.com/play, Wordle https://www.nytimes.com/games/wordle, Miniclip https://www.miniclip.com, GeForce NOW https://play.geforcenow.com, Xbox Cloud https://www.xbox.com/play.
+5.2 LIVE TV (IPTV)
+<select id="pl"> with these BUILT-IN playlists (this order, first is DEFAULT autoloaded):
+Movitv Pro → https://movitv.pro/
+Free: Sports → https://iptv-org.github.io/iptv/categories/sports.m3u
+Free: Movies → https://iptv-org.github.io/iptv/categories/movies.m3u
+Free: News → https://iptv-org.github.io/iptv/categories/news.m3u
+Free: Music → https://iptv-org.github.io/iptv/categories/music.m3u
+Free: Kids → https://iptv-org.github.io/iptv/categories/kids.m3u
+Buttons: "+ Add playlist", "Remove". Adding shows inputs for playlist name + URL and a file-upload button (accept .m3u,.m3u8,text/plain).
+Channel search input.
+Group filter chips ("All" + each group-title= from the M3U).
+Status text line (#tvstatus).
+Channel grid: tile per channel, show tvg-logo= image if present else 📺 emoji, show channel name. Limit render to first 200 channels. Filter + re-render on search.
+M3U PARSING — exact algorithm
+Split text by newlines. For each line starting #EXTINF: capture:
+
+name = text after the LAST comma.
+group = from group-title="..." (regex group-title="([^"]*)"), default Other.
+logo = from tvg-logo="..." (regex tvg-logo="([^"]*)"), default empty. Then the NEXT non-empty line that does NOT start with # is the channel URL.
+CORS HANDLING — must implement
+movitv.pro/ and some playlists block CORS. Fetch pipeline:
+
+Try fetch(url) directly.
+If it throws, retry via proxy: https://api.allorigins.win/get?url=${encodeURIComponent(url)} then read json().contents.
+Show status text so the user knows a proxy was used.
+Saved playlists stored in localStorage key shpl as JSON array of {name, url} or {name, text} (for uploaded files).
+
+5.3 YOUTUBE
+Search bar #yq + Search button + "Key" button.
+"Key" button reveals hidden bar #kbox with #kin input + "Save key" button.
+API key stored in localStorage key ytkey. On first click show a JS prompt() stating: "Get a free key at https://console.cloud.google.com/apis/credentials", store whatever they paste.
+Live suggestions dropdown under the search box: while typing (≥2 chars), debounce 300ms, call https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&type=video&q=...&key=KEY, render clickable rows (thumb + title) in a .suggestions div. Clicking a suggestion plays it.
+Category chips (Trending, Music, Gaming, News, Sports, Movies, Live, Shorts):
+Trending: videos?chart=mostPopular&regionCode=US
+Category: videos?chart=mostPopular&videoCategoryId=N
+Live: search?type=video&eventType=live&q=live
+Shorts: search?type=video&videoDuration=short&q=#shorts
+Video grid: thumbnail (medium), title, channel name. Click opens player.
+Play: https://www.youtube.com/embed/VIDEO_ID?autoplay=1&rel=0 inside the overlay.
+ALSO accept pasted YouTube links: extract 11-char ID from v=, youtu.be/, embed/, shorts/, live/.
+If no API key: show message telling them to tap Key, but still allow pasted video links to play.
+5.4 TWITCH
+Search bar #tw + Watch button.
+Live suggestions dropdown: provide a curated static suggestion list of popular channels that auto-fills as the user types (e.g. loltyler1, xqc, shroud, summit1g, ninja, pokimane, asmongold, mtashed, vyzovsky, bootytv). Filter by input substring, show top 8. Clicking fills input and plays.
+Watch logic: if input matches videos/123456 or a bare 6+ digit number → VOD embed; else treat as channel name → embed.
+Embed URL (must include parent):
+live: https://player.twitch.tv/?channel=NAME&parent=YOURHOST&autoplay=true
+vod: https://player.twitch.tv/?video=v123456&parent=YOURHOST&autoplay=true
+YOURHOST = location.hostname || "localhost".
+Twitch embed is an iframe (blocked while driving) — show a note: "Tip: Twitch may be restricted while driving. Best enjoyed when parked or as a passenger."
+5.5 RADIO
+Grid of radio cards: station name, genre, "Listen"/"Stop" button.
+Stations (100% free streams):
+Lofi Girl radio https://play.streamafrica.net/lofiradio
+SomaFM Groove Salad https://ice1.somafm.com/groovesalad-128-mp3
+SomaFM Drone Zone https://ice1.somafm.com/dronezone-128-mp3
+KEXP https://live-mp3-128.kexp.org/kexp128.mp3
+Clicking Listen: create new Audio(url), call .play(). Store it globally. Clicking again (or opening any player / switching tabs) stops it.
+There must be ONE global stopAllAudio() function called before opening any player or radio station, and on every tab switch.
+5.6 ARCADE (built-in game)
+A <canvas> (~full width, height ~360px) with a simple dodge game:
+Player = blue horizontal bar controlled by touch/mouse X position.
+Red squares fall from top at increasing speed/rate as score grows.
+Collision resets score. Grid background lines. Score text top-left.
+Use requestAnimationFrame, handle touchmove AND mousemove.
+Start the loop when the Arcade tab is opened; cancel it when leaving.
+Also a grid of external game tiles (same as Home games grid).
+6. The Fullscreen Player Overlay (MANDATORY design)
+<div id="ov" hidden>
+  <div class="ovbar">
+    <button id="back">← Back</button>
+    <span id="ovtitle"></span>
+  </div>
+  <div class="ovbody" id="ovbody"></div>
+</div>
+#ov: position:fixed; inset:0; background:#000; z-index:50; display:flex; flex-direction:column.
+.ovbody: flex:1; position:relative.
+.ovbody iframe, .ovbody video, .ovbody canvas are position:absolute; inset:0; width:100%; height:100%; border:0; background:#000.
+Close: #back button AND Escape key.
+openPlayer(title, kind, src):
+kind "embed" → iframe with allow="autoplay; fullscreen; encrypted-media".
+kind "stream" → hidden video + visible canvas + toggle button (Section 3).
+ALWAYS call stopAllAudio() and destroy any existing Hls before opening.
+closePlayer() destroys Hls instance, cancels canvas loop, empties body, hides overlay.
+7. JavaScript Organization (write it in this order)
+const $ = document.querySelector.bind(document) helper.
+HTML-escaping helper for any user/API text inserted into innerHTML.
+Data arrays (playlists, games, radio stations).
+Tab routing functions.
+stopAllAudio() / shutdownMedia().
+Player overlay functions (openPlayer, openStream, closePlayer).
+YouTube logic + suggestions.
+Twitch logic + static suggestions.
+IPTV: parseM3U, loadPl, renderCh, playlist CRUD.
+Radio logic.
+Arcade game loop.
+Clock/greeting ticker.
+8. localStorage Keys (exact)
+ytkey — YouTube Data API v3 key (string).
+shpl — JSON array of custom playlists.
+9. Final Checks Before Delivery
+Page loads with movitv.pro channels appearing (or a clear "proxy" notice).
+Clicking a channel opens the fullscreen overlay with a native video + canvas.
+No button does nothing silently. Every visible control works.
+Escape/Back closes the player.
+Switching tabs stops any audio/video already playing.
+The site has NO paywall, NO donation prompt, NO login, NO account wall.
+10. Deployment (include these instructions for the user)
+Put index.html in a GitHub repo.
+GitHub → Settings → Pages → Deploy from branch → main / root → Save.
+Site live at https://USERNAME.github.io/REPONAME/.
+On the Tesla, open the browser, type that URL, bookmark it.
+Notes: Twitch embeds and YouTube embeds may show a message while the car is in Drive; the native-video/canvas streams (Live TV + Radio) keep playing. Tesla video blocking varies by software version — the canvas fallback maximizes compatibility.
+One thing to know: YouTube embeds don't need an API key to play a video you paste in — the key is only needed for the browse/trending/search features. So tell the AI that pasted links must work even with no key.

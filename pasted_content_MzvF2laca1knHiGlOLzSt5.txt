@@ -1,0 +1,31 @@
+Fix these errors:
+**Context:**
+Page: /?from_webdev=1
+**Error Messages:**
+Error 1: Encountered two children with the same key, `TBS`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+Time: 2026-09-25T03:58:42.059Z (America/New_York)
+    at console.<computed> [as error] (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/__manus__/debug-collector.js:397:31)
+    at https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:4925:25
+    at runWithFiberInDEV (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:997:72)
+    at warnOnInvalidKey (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:4924:15)
+    at reconcileChildrenArray (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:4949:25)
+    at reconcileChildFibersImpl (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-s... [truncated]
+
+Error 2: Encountered two children with the same key, `TBS`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+Time: 2026-09-25T03:58:28.429Z (America/New_York)
+    at console.<computed> [as error] (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/__manus__/debug-collector.js:397:31)
+    at https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:4925:25
+    at runWithFiberInDEV (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:997:72)
+    at warnOnInvalidKey (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:4924:15)
+    at reconcileChildrenArray (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:4965:114)
+    at reconcileChildFibersImpl (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-... [truncated]
+
+Error 3: Encountered two children with the same key, `TBS`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+Time: 2026-09-25T03:58:15.484Z (America/New_York)
+    at console.<computed> [as error] (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/__manus__/debug-collector.js:397:31)
+    at https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:4925:25
+    at runWithFiberInDEV (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:997:72)
+    at warnOnInvalidKey (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:4924:15)
+    at reconcileChildrenArray (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-streamhub/node_modules/.vite/deps/react-dom_client.js?v=e897ff6c:4965:114)
+    at reconcileChildFibersImpl (https://3000-i0ujq9n0b00bavb0qneoy-5b98e8a8.us4.manus.computer/@fs/home/ubuntu/teslaplay-... [truncated]
+          
